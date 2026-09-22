@@ -43,6 +43,7 @@
 - **메인 웹페이지: [frontend/portfolio_1.html](./frontend/portfolio_1.html)** (사용자가 확정함, 2026-09-15)
 - 관련 파일: [frontend/index.html](./frontend/index.html)(이전에 쓰던 대체 디자인, 현재는 사용 안 함), [portfolio_summary.md](./portfolio_summary.md)(파일 정리본)
 - 2026-09-22부터 **프론트엔드([frontend/](./frontend/))/백엔드([backend/](./backend/))로 분리됨.** 자세한 내용은 아래 "완료된 작업" 참고.
+- **배포**: GitHub(`gee6285-star/portfolio`) - Vercel 연동, `main` 브랜치에 push하면 자동 배포됨. 배포 주소: `https://portfolio-portfolio-42ae.vercel.app` (단, 지금 Vercel의 "배포 보호(Deployment Protection)"가 켜져 있어서 로그인 없이는 아무도 못 봄 - Vercel 대시보드에서 꺼야 함. 이 저장소와 완전히 다른 프로젝트인 `gee6285-star/seonga-04`와 혼동하지 말 것.)
 - **관리자 페이지: [frontend/admin.html](./frontend/admin.html)** (2026-09-22 신설, 비밀번호 로그인 필요) — 프로젝트를 여기서 입력하면 공개 사이트에 자동 반영됨. 자세한 내용은 아래 "완료된 작업" 참고.
 - 루트에서 `npm run dev` 하면 프론트엔드(5500)+백엔드(4000)가 한 번에 실행됨 (`package.json` 참고)
 
@@ -109,6 +110,16 @@
 - 로그인 입력창에 `autocomplete="off"` 적용해서 브라우저가 비밀번호를 기억/자동완성하지 않도록 함 (다만 브라우저 자체 설정에 따라 완전히 보장되진 않음 — 확실히 하려면 브라우저의 "비밀번호 저장" 기능을 꺼두는 게 좋음, `backend/README.md`에 안내함).
 - 프로젝트 전체(코드/문서)에 비밀번호 원문이 남아있지 않은지 검색해서 확인함 (해시만 `.env`에 저장되고, `.env`는 git에 안 올라감).
 - **검증**: Playwright로 "같은 브라우저에서 새 창을 열어도 로그인 화면이 뜨는지", "쿠키가 실제로 세션 쿠키인지(만료시간 없음)", "새 창을 열면 기존 창도 새로고침 시 로그인 화면으로 돌아가는지", "쿠키 없이 서버에 직접 확인해도 401인지"까지 전부 실제로 실행해서 확인함.
+- 재점검 중 로그인 시도 횟수 제한이 없던 것을 발견해서 추가함 (`backend/src/middleware/loginRateLimit.js`) — 같은 IP에서 15분 안에 5번 틀리면 잠금.
+
+### 배포(Vercel) 재연결 시도 (2026-09-22)
+
+**요청 배경**: 프론트/백엔드 분리 후 기존 Vercel 배포가 깨진 것 같다는 요청. 사용자가 준 저장소 링크(`gee6285-star/seonga-04`)가 실제로는 **이 포트폴리오와 무관한 다른 과제 프로젝트**임을 확인하고, 사용자에게 재확인받아 `gee6285-star/portfolio`가 맞는 저장소임을 확정함.
+
+- GitHub API로 확인한 결과: Vercel이 이미 `gee6285-star/portfolio`의 `main` 브랜치에 GitHub 연동으로 **자동 배포되고 있었음** (별도 로그인/설정 불필요, push할 때마다 자동 배포).
+- 실제 배포 주소: `https://portfolio-portfolio-42ae.vercel.app` — 단, **Vercel의 "배포 보호(Deployment Protection/Vercel Authentication)"가 켜져 있어서, 로그인 안 한 사람은 접속 시 vercel.com 로그인 화면으로 튕겨나감.** 이건 Vercel 대시보드 설정이라 코드로 못 고치고, 사용자가 직접 [프로젝트] → Settings → Deployment Protection에서 꺼야 함.
+- 파일 경로 문제(코드로 고칠 수 있는 부분)는 `vercel.json`을 새로 만들어서 해결: `portfolio_1.html`, `admin.html`이 `frontend/` 폴더로 이동했으므로, 루트(`/`)와 `/admin` 등 주소를 `frontend/` 안의 실제 파일로 연결(rewrite)하도록 설정함.
+- **아직 해결 안 된 것**: 이 사이트의 백엔드(Express + 파일 저장)는 Vercel의 서버리스 함수 방식과 안 맞음 (요청마다 새 컨테이너가 뜰 수 있어서 `projects.json` 파일 쓰기가 안정적으로 유지 안 되고, 로그인 시도 제한도 메모리 기반이라 마찬가지). 백엔드를 어디에 어떻게 배포할지는 사용자 확인 필요 (아래 "확인이 필요한 것" 참고).
 
 ### 자기소개 · 전공 소개 · 보유 역량 · 향후 계획 반영 (portfolio_1.html)
 
@@ -127,3 +138,5 @@ index.html에 이미 작성돼 있던 문장/태그를 사용자가 참고해서
 - [ ] index.html을 계속 보관할지, 정리(삭제)할지
 - [ ] DB 종류(MySQL/PostgreSQL/MongoDB 등)와 접속 정보 — 정해지면 `backend/README.md`의 안내대로 연결
 - [ ] 관리자 페이지 배포 시 주소 변경 필요 — 지금 `admin.html`, `portfolio_1.html`의 `API_BASE_URL`이 `http://localhost:4000`으로 하드코딩돼 있음 (로컬 개발용)
+- [ ] **Vercel "배포 보호" 끄기** — vercel.com 대시보드 → 프로젝트 → Settings → Deployment Protection에서 꺼야 다른 사람이 사이트를 볼 수 있음 (코드로 못 고침, 사용자가 직접 해야 함)
+- [ ] **백엔드(관리자 페이지)를 어디에 배포할지 결정 필요** — 지금 구조(파일 저장 + 메모리 기반 로그인 제한)는 Vercel 서버리스 함수와 안 맞음. Render/Railway/Fly.io 같은 상시 실행 서버 서비스를 쓰거나, DB를 정한 뒤 서버리스에 맞게 구조를 바꿔야 함
