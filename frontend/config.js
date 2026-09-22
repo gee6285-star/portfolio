@@ -11,8 +11,7 @@
 (function () {
   var isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-  // ⚠️ Render에서 백엔드를 배포한 뒤, 아래 주소를 실제 주소로 바꿔주세요.
-  var PRODUCTION_API_ORIGIN = 'https://REPLACE-WITH-YOUR-RENDER-URL.onrender.com';
+  var PRODUCTION_API_ORIGIN = 'https://seonga-portfolio-backend.onrender.com';
 
   window.API_ORIGIN = isLocalDev ? 'http://localhost:4000' : PRODUCTION_API_ORIGIN;
   window.API_BASE = window.API_ORIGIN + '/api';
