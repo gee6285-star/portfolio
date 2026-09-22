@@ -39,11 +39,12 @@ function toPublicShape(list) {
 // 공개 사이트용 (published만)
 // ------------------------------------------------------------
 async function getPublishedProjects() {
-  return toPublicShape(store.readAll());
+  return toPublicShape(await store.readAll());
 }
 
 async function getPublishedProjectById(id) {
-  const project = store.readAll().find((p) => p.id === Number(id));
+  const list = await store.readAll();
+  const project = list.find((p) => p.id === Number(id));
   return project && project.status === 'published' ? project : null;
 }
 
@@ -55,7 +56,8 @@ async function getAllProjectsForAdmin() {
 }
 
 async function getProjectByIdForAdmin(id) {
-  return store.readAll().find((p) => p.id === Number(id)) || null;
+  const list = await store.readAll();
+  return list.find((p) => p.id === Number(id)) || null;
 }
 
 function buildValidationError(fields) {
@@ -70,7 +72,7 @@ async function createProject(data) {
   const missing = validate(data, status);
   if (missing.length > 0) throw buildValidationError(missing);
 
-  const list = store.readAll();
+  const list = await store.readAll();
   const now = new Date().toISOString();
   const project = {
     id: store.nextId(list),
@@ -87,13 +89,13 @@ async function createProject(data) {
     updatedAt: now
   };
   list.push(project);
-  store.writeAll(list);
+  await store.writeAll(list);
   // hasDuplicate는 저장되는 값이 아니라, 저장 직후 "혹시 중복일 수 있음"을 알려주기 위한 안내용 정보
   return { ...project, hasDuplicate: hasDuplicateTitle(project, list) };
 }
 
 async function updateProject(id, data) {
-  const list = store.readAll();
+  const list = await store.readAll();
   const idx = list.findIndex((p) => p.id === Number(id));
   if (idx === -1) return null;
 
@@ -115,22 +117,22 @@ async function updateProject(id, data) {
     updatedAt: new Date().toISOString()
   };
   list[idx] = updated;
-  store.writeAll(list);
+  await store.writeAll(list);
   return { ...updated, hasDuplicate: hasDuplicateTitle(updated, list) };
 }
 
 async function deleteProject(id) {
-  const list = store.readAll();
+  const list = await store.readAll();
   const idx = list.findIndex((p) => p.id === Number(id));
   if (idx === -1) return false;
   list.splice(idx, 1);
-  store.writeAll(list);
+  await store.writeAll(list);
   return true;
 }
 
 // 제목이 겹치는 프로젝트끼리 묶어서 반환 (관리자 페이지 "중복 의심 프로젝트" 패널용)
 async function getDuplicateGroups() {
-  return findDuplicateGroups(store.readAll());
+  return findDuplicateGroups(await store.readAll());
 }
 
 module.exports = {

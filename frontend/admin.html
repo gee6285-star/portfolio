@@ -289,11 +289,12 @@
   </section>
 </div>
 
+<script src="./config.js"></script>
 <script>
   // ============================================================
-  // 백엔드 주소 (배포 시 실제 주소로 변경)
+  // 백엔드 주소 (config.js에서 로컬/배포 여부에 맞게 window.API_BASE로 정해줌)
   // ============================================================
-  var API_BASE = 'http://localhost:4000/api';
+  var API_BASE = window.API_BASE;
 
   // 공개 시 반드시 채워야 하는 항목 (참고사항 제외) - 백엔드 검증 규칙과 동일하게 맞춤
   var REQUIRED_FOR_PUBLISH = ['title', 'tag', 'role', 'description', 'date', 'participantCount', 'link'];

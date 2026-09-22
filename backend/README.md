@@ -37,20 +37,28 @@ npm run hash-password -- <원하는 비밀번호>
 
 ```
 backend/
-├─ server.js                          # 서버 진입점 (미들웨어, 라우트 연결)
+├─ app.js                             # Express 앱 조립 (미들웨어, 라우트 연결) - 서버 실행은 안 함
+├─ server.js                          # 로컬 개발용 진입점 (app.js를 가져와서 listen)
 ├─ scripts/hash-password.js           # 관리자 비밀번호 해시 생성 도구
 ├─ src/
 │  ├─ routes/
 │  │  ├─ projects.routes.js           # 공개용 (published만)
 │  │  └─ admin.routes.js              # 관리자 전용 (로그인 + CRUD, 로그인 필요)
-│  ├─ middleware/requireAdmin.js      # 로그인(쿠키) 확인 미들웨어
+│  ├─ middleware/
+│  │  ├─ requireAdmin.js              # 로그인(쿠키) 확인 미들웨어
+│  │  └─ loginRateLimit.js            # 로그인 시도 횟수 제한
 │  ├─ services/
 │  │  ├─ projects.service.js          # 데이터 처리 로직 + 저장 검증 (DB 교체 지점)
-│  │  └─ auth.service.js              # 비밀번호 검증, 로그인 토큰 발급/검증
+│  │  ├─ auth.service.js              # 비밀번호 검증, 로그인 토큰 발급/검증
+│  │  └─ duplicateCheck.js            # 제목 기준 중복 확인
 │  └─ data/
-│     ├─ projects.json                # 실제 데이터 (DB 연결 전까지 이 파일에 저장됨)
-│     └─ projectsStore.js             # projects.json 읽기/쓰기 (DB 교체 지점)
+│     ├─ projects.json                # 실제 데이터 (로컬/배포 초기값. 배포 시 Blob 연결 전까지 사용)
+│     └─ projectsStore.js             # 데이터 읽기/쓰기 (로컬=파일, 배포=Vercel Blob 자동 전환. DB 교체 지점)
 └─ .env.example                       # 환경변수 예시 (PORT, 관리자 로그인, DB 접속정보 등)
+
+(저장소 루트)
+├─ api/index.js                       # Vercel 서버리스 함수 진입점 (backend/app.js를 그대로 감쌈)
+├─ vercel.json                        # 배포 라우팅 설정 (frontend/, api/ 경로 연결)
 ```
 
 ## API
@@ -105,3 +113,32 @@ DB 종류(MySQL / PostgreSQL / MongoDB 등)와 접속 정보가 정해지면 아
 4. `src/services/projects.service.js`, `src/routes/*.js`, 프론트엔드 코드는 그대로 두어도 됨 (같은 함수 시그니처를 유지하기 때문)
 
 즉, **데이터를 가져오는 방식만 바뀌고 나머지 구조는 그대로 유지되도록** 미리 계층을 나눠 놓았습니다.
+
+## Vercel에 배포하기
+
+이 프로젝트는 프론트엔드(`frontend/`)와 백엔드(`backend/`)를 **같은 Vercel 프로젝트에서 한 번에** 배포하도록 구성돼 있습니다.
+
+- `frontend/`의 정적 파일은 `vercel.json`의 `rewrites`로 루트 주소(`/`, `/admin` 등)에 연결됩니다.
+- `backend/app.js`(Express 앱)는 `api/index.js`가 그대로 감싸서, `/api/...`로 오는 모든 요청을 서버리스 함수로 처리합니다. `backend/`의 라우트·서비스 코드는 로컬/배포 어디서든 동일하게 동작합니다.
+- 로그인 세션(JWT 쿠키)은 그대로 잘 동작합니다 (서버리스 함수도 쿠키를 읽고 쓸 수 있음).
+
+### ⚠️ 배포 후 반드시 해야 하는 것: Blob 스토리지 연결
+
+Vercel 서버리스 함수는 배포된 파일에 새로 쓰기를 할 수 없습니다(읽기 전용). 그래서 지금까지 쓰던 "파일에 저장" 방식이 배포 환경에서는 그대로 동작하지 않습니다. 대신 **Vercel Blob**(Vercel에서 제공하는 파일 저장소, Hobby 플랜에 무료 사용량 포함)을 연결하면 코드 수정 없이 자동으로 그쪽에 저장하도록 이미 만들어 놨습니다 (`src/data/projectsStore.js` 참고).
+
+**연결 방법 (최초 1회, Vercel 대시보드에서):**
+
+1. Vercel 프로젝트 페이지 → 상단 **Storage** 탭
+2. **Create Database** → **Blob** 선택 → 이름 정하고 생성
+3. 생성된 Blob 스토리지를 **이 프로젝트에 Connect**(연결) — 연결하면 `BLOB_READ_WRITE_TOKEN` 환경변수가 프로젝트에 자동으로 추가됩니다 (직접 복사/붙여넣기 안 해도 됨)
+4. 연결 후 **재배포(Redeploy)** 한 번 필요 (환경변수는 재배포해야 함수에 반영됨)
+
+연결하기 전까지는 배포 시점에 담겨있던 기본 데이터(`projects.json`)는 "조회"는 되지만, 관리자 페이지에서 새로 저장/수정/삭제한 내용은 저장되지 않고 오류 메시지가 뜹니다 (배포된 파일은 읽기 전용이라서). Blob을 연결하면 이 문제가 해결됩니다.
+
+### 로컬 개발에는 영향 없음
+
+로컬(`npm run dev`)에서는 `BLOB_READ_WRITE_TOKEN`이 없으므로 지금처럼 `backend/src/data/projects.json` 파일에 그대로 저장됩니다. 아무 설정도 바꿀 필요 없습니다.
+
+### 알려진 한계
+
+- 로그인 시도 횟수 제한(`loginRateLimit.js`)은 메모리에 기록하는 방식이라, 서버리스 함수가 새로 뜨면(콜드 스타트) 초기화될 수 있습니다. 개인용 사이트 규모에서는 큰 문제가 되지 않지만, 완벽한 방어는 아닙니다.
