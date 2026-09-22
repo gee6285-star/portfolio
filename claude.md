@@ -133,6 +133,18 @@
 - **Vercel Blob 연결은 사용자가 대시보드에서 직접 해야 함** (Storage 탭 → Blob 생성 → 프로젝트에 Connect → 재배포). 연결 전까지는 관리자 페이지에서 저장/수정 시 오류 메시지가 뜸 (배포된 파일은 읽기 전용이라서). 자세한 순서는 `backend/README.md`의 "Vercel에 배포하기" 참고.
 - 로그인 시도 제한은 메모리 기반이라 서버리스 콜드 스타트 시 초기화될 수 있다는 한계를 문서에 남김 (개인용 사이트 규모라 치명적이진 않음).
 
+### 백엔드 배포를 Vercel → Render로 변경 (2026-09-22)
+
+**요청 배경**: "렌더로 연결하고 싶어" — Vercel의 배포 보호(SSO)·서버리스 제약이 계속 걸려서, 사용자에게 범위를 확인받아 **"백엔드만 Render로, 프론트는 계속 Vercel"** 로 결정함.
+
+- Vercel 서버리스 전용으로 만들었던 `api/index.js`와 `vercel.json`의 `/api/*` rewrite를 제거함 (더 이상 Vercel이 백엔드를 실행하지 않으므로).
+- 루트 `package.json`에 있던 백엔드 런타임 의존성(express 등)도 제거 — Vercel 빌드용으로 넣었던 것이라 이제 불필요.
+- **프론트(Vercel)와 백엔드(Render)가 서로 다른 도메인**이 되므로, 로그인 쿠키를 배포 환경(`NODE_ENV=production`)에서는 `SameSite=None; Secure`로 바꿈 (로컬은 기존처럼 `Lax` 유지 - 로컬은 포트만 다른 "같은 사이트"라 문제 없음).
+- `frontend/config.js`: 배포 환경의 API 주소를 "같은 도메인"이 아니라 **Render가 배정한 실제 주소**를 가리키도록 변경 (사용자가 Render 배포 후 이 파일의 `PRODUCTION_API_ORIGIN`에 실제 주소를 채워야 함 - 아직 안 채워진 placeholder 상태).
+- `render.yaml` 신설 (Render Blueprint) — Render에서 "New + → Blueprint"로 이 저장소를 선택하면 자동으로 설정되도록 함. 비밀값(비밀번호 해시, JWT_SECRET 등)은 화면에서 직접 입력하게 되어 있어 저장소에는 안 남음.
+- 데이터 저장(Vercel Blob 자동 전환 로직)은 그대로 유지 — Blob은 Vercel Hosting과 무관하게 토큰만 있으면 어디서든(Render 포함) 쓸 수 있어서, "Render는 서버만, 데이터는 Blob에" 조합도 `backend/README.md`에 선택사항으로 안내함 (Render 무료 플랜은 디스크가 영구적이지 않아서 권장).
+- **검증**: 로컬(`npm run dev`)에서 로그인/세션 정책이 리팩터링 후에도 그대로 동작하는지 재확인함 (Render/Vercel 실제 배포 자체는 사용자가 대시보드에서 진행해야 하는 부분이라 로컬 검증까지만 가능).
+
 ### 자기소개 · 전공 소개 · 보유 역량 · 향후 계획 반영 (portfolio_1.html)
 
 index.html에 이미 작성돼 있던 문장/태그를 사용자가 참고해서 쓰라고 확인해줘서(2026-09-15) portfolio_1.html의 01, 02, 03, 07 섹션에 그대로 반영함. placeholder 스타일(점선 박스)이 아니라 "확정된 정보" 스타일(실선 박스/태그, `.content-box`, `.tag-row`)로 바꿔서 legend와 일치시킴.
@@ -149,6 +161,7 @@ index.html에 이미 작성돼 있던 문장/태그를 사용자가 참고해서
 - [ ] 실제 프로젝트 내용 — 관리자 페이지(`frontend/admin.html`)에서 직접 입력하면 됨. 기존 예시 3건은 전부 "초안" 상태라 지금 공개 사이트에는 프로젝트가 0건으로 보임 (사용자가 입력 중인 "캠퍼스 내 조경설계" 1건 있음, 아직 초안 상태)
 - [ ] index.html을 계속 보관할지, 정리(삭제)할지
 - [ ] DB 종류(MySQL/PostgreSQL/MongoDB 등)와 접속 정보 — 정해지면 `backend/README.md`의 안내대로 연결
-- [x] ~~관리자 페이지 API 주소 하드코딩~~ → 2026-09-22 `frontend/config.js`로 로컬/배포 자동 전환하도록 해결
+- [x] ~~관리자 페이지 API 주소 하드코딩~~ → 2026-09-22 `frontend/config.js`로 로컬/배포 자동 전환하도록 해결 (단, 배포용 Render 주소는 아직 placeholder — 아래 참고)
 - [ ] **Vercel "배포 보호" 끄기 (아직 미해결, 재확인 필요)** — vercel.com 대시보드 → 프로젝트 → Settings → Deployment Protection에서 꺼야 다른 사람이 사이트를 볼 수 있음. 2026-09-22에 확인했을 때도 익명 방문자는 여전히 `vercel.com/login`으로 막혀있었음 (코드로 못 고침, 사용자가 직접 해야 함)
-- [ ] **Vercel Blob 스토리지 연결 필요** — 백엔드를 Vercel 서버리스 함수로 배포하도록 구조는 바꿨지만(2026-09-22), 실제 저장이 되려면 Vercel 대시보드에서 Blob을 만들어 프로젝트에 연결해야 함 (`backend/README.md`의 "Vercel에 배포하기" 참고). 연결 전까지는 관리자 페이지에서 저장 시 오류가 남
+- [ ] **Render에 백엔드 배포 + 주소 채우기** — `render.yaml`로 Blueprint 배포하거나 수동으로 Web Service 생성(`backend/README.md`의 "Render에 배포하기" 참고). 배포 후 받은 주소를 `frontend/config.js`의 `PRODUCTION_API_ORIGIN`에 붙여넣고 다시 push해야 프론트엔드가 백엔드를 찾아감
+- [ ] (선택) **Vercel Blob으로 데이터 영구 저장** — 안 하면 Render 무료 플랜 특성상 서비스가 한동안 안 쓰이다 다시 깨어날 때 관리자 페이지에서 저장한 내용이 배포 시점 상태로 되돌아갈 수 있음 (`backend/README.md` 참고)

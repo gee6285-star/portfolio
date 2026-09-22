@@ -12,7 +12,8 @@
 | [frontend/index.html](./frontend/index.html) | 이전에 쓰던 대체 디자인 (심플한 문서형) — 더 이상 메인 아님 | 카드+클릭 확장까지만 구현됨, 필터는 없음. 보관/삭제 여부 미정. 2026-09-22부터 `frontend/`로 이동 |
 | [backend/](./backend/) | Node.js + Express API 서버 (2026-09-22 신설) | DB 미연결, `backend/src/data/projects.json` 파일로 동작. 공개 API + 로그인 필요한 관리자 API 제공. 자세한 내용은 `backend/README.md` 참고 |
 | [frontend/admin.html](./frontend/admin.html) | 관리자 페이지 (2026-09-22 신설, 비밀번호 로그인 필요) | 프로젝트 입력/수정(초안·공개) 기능 구현 완료. 실제 사용 전 비밀번호를 본인 것으로 교체해야 함(`backend/README.md` 참고) |
-| [vercel.json](./vercel.json) | Vercel 배포 라우팅 설정 (2026-09-22 신설) | `frontend/` 폴더로 이동한 파일들을 루트 주소(`/`, `/admin` 등)에서 그대로 볼 수 있도록 연결. 배포 주소는 `https://portfolio-portfolio-42ae.vercel.app`인데, Vercel 대시보드의 "배포 보호"를 꺼야 외부에서 보임(사용자 확인 필요) |
+| [vercel.json](./vercel.json) | Vercel 배포 라우팅 설정 (2026-09-22 신설, 프론트엔드 전용) | `frontend/` 폴더로 이동한 파일들을 루트 주소(`/`, `/admin` 등)에서 그대로 볼 수 있도록 연결. 배포 주소는 `https://portfolio-portfolio-42ae.vercel.app`인데, Vercel 대시보드의 "배포 보호"를 꺼야 외부에서 보임(사용자 확인 필요) |
+| [render.yaml](./render.yaml) | Render 배포 설정 (2026-09-22 신설, 백엔드 전용) | 백엔드(`backend/`)를 Render Web Service로 배포하기 위한 Blueprint. 배포 후 받는 주소를 `frontend/config.js`에 채워야 함(사용자 확인 필요) |
 | [portfolio_1.txt](./portfolio_1.txt) | 텍스트 기반 초안 양식 (8개 항목 목차) | 전 항목 빈 템플릿 |
 | [1학기_03주차_프롬프트와_단계별_수정.pdf](C:\Users\임성아\OneDrive\Documents\카카오톡%20받은%20파일\1학기_03주차_프롬프트와_단계별_수정.pdf) | 포트폴리오 프로젝트 폴더 밖의 강의자료. 프롬프트를 작은 단위로 쪼개서 요청하는 법(ROCK 법칙)과 `context.md` 작성법을 설명 — claude.md 구조의 근거 | 참고용 자료 (본인 포트폴리오 콘텐츠 아님) |
 

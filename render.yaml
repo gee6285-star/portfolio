@@ -1,0 +1,26 @@
+# ============================================================
+# Render 배포 설정 (Blueprint)
+#
+# Render 대시보드에서 "New +" → "Blueprint" → 이 저장소 선택 시 자동으로
+# 아래 설정대로 서비스가 만들어집니다. sync: false인 값들은 Render가 화면에서
+# 직접 입력하라고 물어봅니다 (비밀값이라 이 파일에 실제 값을 적지 않음).
+# ============================================================
+services:
+  - type: web
+    name: seonga-portfolio-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_ORIGIN
+        sync: false   # 예: https://portfolio-portfolio-42ae.vercel.app (끝에 슬래시 없이)
+      - key: ADMIN_PASSWORD_HASH
+        sync: false   # backend/README.md 안내대로 npm run hash-password 로 생성한 값
+      - key: JWT_SECRET
+        sync: false   # 아무 긴 무작위 문자열
+      - key: BLOB_READ_WRITE_TOKEN
+        sync: false   # 선택사항: Vercel Blob을 데이터 저장소로 쓰고 싶을 때만 채움

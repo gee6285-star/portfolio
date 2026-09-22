@@ -52,13 +52,13 @@ backend/
 │  │  ├─ auth.service.js              # 비밀번호 검증, 로그인 토큰 발급/검증
 │  │  └─ duplicateCheck.js            # 제목 기준 중복 확인
 │  └─ data/
-│     ├─ projects.json                # 실제 데이터 (로컬/배포 초기값. 배포 시 Blob 연결 전까지 사용)
-│     └─ projectsStore.js             # 데이터 읽기/쓰기 (로컬=파일, 배포=Vercel Blob 자동 전환. DB 교체 지점)
+│     ├─ projects.json                # 실제 데이터 (로컬 기본값. 배포 시 Blob 연결 전까지도 이 값으로 시작)
+│     └─ projectsStore.js             # 데이터 읽기/쓰기 (로컬=파일, BLOB_READ_WRITE_TOKEN 있으면 Blob 자동 전환. DB 교체 지점)
 └─ .env.example                       # 환경변수 예시 (PORT, 관리자 로그인, DB 접속정보 등)
 
 (저장소 루트)
-├─ api/index.js                       # Vercel 서버리스 함수 진입점 (backend/app.js를 그대로 감쌈)
-├─ vercel.json                        # 배포 라우팅 설정 (frontend/, api/ 경로 연결)
+├─ render.yaml                        # Render 배포 설정 (Blueprint)
+├─ vercel.json                        # Vercel(프론트엔드 정적 파일) 배포 라우팅 설정
 ```
 
 ## API
@@ -114,31 +114,55 @@ DB 종류(MySQL / PostgreSQL / MongoDB 등)와 접속 정보가 정해지면 아
 
 즉, **데이터를 가져오는 방식만 바뀌고 나머지 구조는 그대로 유지되도록** 미리 계층을 나눠 놓았습니다.
 
-## Vercel에 배포하기
+## Render에 배포하기
 
-이 프로젝트는 프론트엔드(`frontend/`)와 백엔드(`backend/`)를 **같은 Vercel 프로젝트에서 한 번에** 배포하도록 구성돼 있습니다.
+**구성**: 프론트엔드(`frontend/`)는 Vercel에, 백엔드(이 폴더)는 Render에 각각 따로 배포합니다. 서로 다른 도메인이 되므로 CORS·쿠키 설정이 이를 위한 값으로 이미 맞춰져 있습니다 (아래 "배포 시 필수 환경변수" 참고).
 
-- `frontend/`의 정적 파일은 `vercel.json`의 `rewrites`로 루트 주소(`/`, `/admin` 등)에 연결됩니다.
-- `backend/app.js`(Express 앱)는 `api/index.js`가 그대로 감싸서, `/api/...`로 오는 모든 요청을 서버리스 함수로 처리합니다. `backend/`의 라우트·서비스 코드는 로컬/배포 어디서든 동일하게 동작합니다.
-- 로그인 세션(JWT 쿠키)은 그대로 잘 동작합니다 (서버리스 함수도 쿠키를 읽고 쓸 수 있음).
+### 배포 방법 (최초 1회)
 
-### ⚠️ 배포 후 반드시 해야 하는 것: Blob 스토리지 연결
+**방법 A: Blueprint로 한 번에 (추천)** — 저장소 루트의 `render.yaml`을 인식해서 자동으로 설정해줍니다.
 
-Vercel 서버리스 함수는 배포된 파일에 새로 쓰기를 할 수 없습니다(읽기 전용). 그래서 지금까지 쓰던 "파일에 저장" 방식이 배포 환경에서는 그대로 동작하지 않습니다. 대신 **Vercel Blob**(Vercel에서 제공하는 파일 저장소, Hobby 플랜에 무료 사용량 포함)을 연결하면 코드 수정 없이 자동으로 그쪽에 저장하도록 이미 만들어 놨습니다 (`src/data/projectsStore.js` 참고).
+1. https://render.com 로그인 (GitHub 계정으로 가입 가능)
+2. **New +** → **Blueprint** → 이 저장소(`gee6285-star/portfolio`) 선택
+3. `render.yaml`에 적힌 값 중 `sync: false`로 표시된 것들(비밀번호 해시, JWT_SECRET 등)을 화면에서 입력 → **Apply**
 
-**연결 방법 (최초 1회, Vercel 대시보드에서):**
+**방법 B: 수동으로**
 
-1. Vercel 프로젝트 페이지 → 상단 **Storage** 탭
-2. **Create Database** → **Blob** 선택 → 이름 정하고 생성
-3. 생성된 Blob 스토리지를 **이 프로젝트에 Connect**(연결) — 연결하면 `BLOB_READ_WRITE_TOKEN` 환경변수가 프로젝트에 자동으로 추가됩니다 (직접 복사/붙여넣기 안 해도 됨)
-4. 연결 후 **재배포(Redeploy)** 한 번 필요 (환경변수는 재배포해야 함수에 반영됨)
+1. https://render.com → **New +** → **Web Service** → 이 저장소 선택
+2. **Root Directory**: `backend`
+3. **Build Command**: `npm install`
+4. **Start Command**: `npm start`
+5. **Instance Type**: Free
+6. 아래 "배포 시 필수 환경변수" 값들을 Environment 탭에서 채우기
 
-연결하기 전까지는 배포 시점에 담겨있던 기본 데이터(`projects.json`)는 "조회"는 되지만, 관리자 페이지에서 새로 저장/수정/삭제한 내용은 저장되지 않고 오류 메시지가 뜹니다 (배포된 파일은 읽기 전용이라서). Blob을 연결하면 이 문제가 해결됩니다.
+배포가 끝나면 Render가 `https://<서비스이름>-xxxx.onrender.com` 형태의 주소를 줍니다. 이 주소를 **`frontend/config.js`의 `PRODUCTION_API_ORIGIN`에 붙여넣고 Vercel에 다시 push**해야 프론트엔드가 이 백엔드를 찾아갈 수 있습니다.
+
+### 배포 시 필수 환경변수
+
+| 변수 | 값 | 설명 |
+|---|---|---|
+| `NODE_ENV` | `production` | 쿠키를 배포 환경에 맞게(SameSite=None; Secure) 설정하기 위해 필요 |
+| `FRONTEND_ORIGIN` | 실제 Vercel 주소 (예: `https://portfolio-portfolio-42ae.vercel.app`) | CORS 허용 주소. 끝에 슬래시(`/`) 넣지 않기 |
+| `ADMIN_PASSWORD_HASH` | `npm run hash-password -- <비밀번호>`로 생성한 값 | 위 "관리자 로그인 설정" 참고 |
+| `JWT_SECRET` | 아무 긴 무작위 문자열 | 세션 토큰 서명용 |
+| `BLOB_READ_WRITE_TOKEN` | (선택) | 아래 "데이터 저장 - 무료 영구 저장소 쓰기" 참고 |
+
+### ⚠️ 데이터 저장 - 무료로 영구 저장소 쓰기 (권장)
+
+Render의 무료 플랜은 디스크가 영구적이지 않습니다 — 서비스가 한동안 안 쓰여서 잠들었다가 다시 깨어나면(무료 플랜은 15분 정도 요청이 없으면 잠듦), 그 사이에 관리자 페이지에서 저장한 내용이 사라질 수 있습니다.
+
+이 문제를 무료로 해결하는 방법: **Vercel Blob**을 저장소로만 사용 (Render는 서버 실행만, 데이터는 Blob에). Blob은 Vercel 계정만 있으면 되고, 그 Vercel 프로젝트에서 실제로 뭘 배포/실행할 필요는 없습니다.
+
+1. https://vercel.com 프로젝트 페이지 → **Storage** 탭 → **Create Database** → **Blob** → 생성
+2. 생성한 Blob의 **토큰 값 확인** (대시보드에서 `.env.local` 다운로드 또는 토큰 직접 복사)
+3. 그 토큰을 Render의 환경변수 `BLOB_READ_WRITE_TOKEN`에 붙여넣기 (코드 수정 필요 없음 - `src/data/projectsStore.js`가 이 값이 있으면 자동으로 Blob을 사용함)
+
+이 단계를 건너뛰어도 배포는 정상 작동합니다 — 다만 서비스가 잠들었다 깨어날 때 데이터가 배포 시점 상태로 되돌아갈 수 있다는 것만 감안하면 됩니다.
 
 ### 로컬 개발에는 영향 없음
 
-로컬(`npm run dev`)에서는 `BLOB_READ_WRITE_TOKEN`이 없으므로 지금처럼 `backend/src/data/projects.json` 파일에 그대로 저장됩니다. 아무 설정도 바꿀 필요 없습니다.
+로컬(`npm run dev`)에서는 `NODE_ENV`도, `BLOB_READ_WRITE_TOKEN`도 설정하지 않으므로 지금처럼 동작합니다 (쿠키는 SameSite=Lax, 데이터는 `projects.json` 파일). 아무 설정도 바꿀 필요 없습니다.
 
 ### 알려진 한계
 
-- 로그인 시도 횟수 제한(`loginRateLimit.js`)은 메모리에 기록하는 방식이라, 서버리스 함수가 새로 뜨면(콜드 스타트) 초기화될 수 있습니다. 개인용 사이트 규모에서는 큰 문제가 되지 않지만, 완벽한 방어는 아닙니다.
+- 로그인 시도 횟수 제한(`loginRateLimit.js`)은 메모리에 기록하는 방식이라, 서비스가 재시작되면 초기화됩니다. 개인용 사이트 규모에서는 큰 문제가 되지 않지만, 완벽한 방어는 아닙니다.

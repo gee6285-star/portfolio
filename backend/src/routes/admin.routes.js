@@ -17,10 +17,15 @@ const {
   getDuplicateGroups
 } = require('../services/projects.service');
 
+// 로컬 개발: 프론트(5500)/백엔드(4000)가 포트만 다른 "같은 사이트"라서 Lax로 충분함.
+// 배포: 프론트(Vercel)와 백엔드(Render)가 완전히 다른 도메인 = "다른 사이트"라서
+// SameSite=None이 아니면 브라우저가 쿠키를 아예 안 보냄 (로그인이 안 되는 것처럼 보임).
+// None을 쓰려면 브라우저 규칙상 secure(HTTPS)도 반드시 true여야 함.
+const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_OPTIONS = {
   httpOnly: true,               // JS(document.cookie)로 못 읽음 - XSS로부터 토큰 보호
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production'
+  sameSite: IS_PROD ? 'none' : 'lax',
+  secure: IS_PROD
   // maxAge를 일부러 지정하지 않음 -> "세션 쿠키"가 되어 브라우저를 완전히 종료하면
   // 자동으로 삭제됨 (창을 닫아도 로그인 기록이 남지 않길 원한다는 요청에 따름).
   // 참고: 프론트엔드(admin.html)도 페이지를 열 때마다 로그아웃부터 시키므로,
