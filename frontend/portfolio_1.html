@@ -498,40 +498,47 @@
 <script>
   // ============================================================
   // 백엔드 API 주소
-  // backend/ 서버가 켜져 있으면 이 주소에서 최신 프로젝트 데이터를 받아옵니다.
+  // backend/ 서버가 켜져 있으면 이 주소에서 "공개(published)" 상태인 프로젝트만 받아옵니다.
+  // (초안은 관리자 페이지 - frontend/admin.html - 에서만 보입니다)
   // 서버가 꺼져 있거나 주소가 다르면(예: 배포 후) 아래 FALLBACK_PROJECTS를 그대로 사용합니다.
   // ============================================================
   var API_BASE_URL = 'http://localhost:4000/api/projects';
 
   // ============================================================
   // 프로젝트 데이터 (기본값 / 백엔드 미연결 시 사용)
-  // 실제 프로젝트가 정해지면 이 배열의 값만 채우면 카드가 자동으로 생성됩니다.
-  // (아직 사용자에게 확인받지 않은 예시 값이므로, 실제 내용으로 반드시 교체해야 합니다.)
-  // backend/src/data/projects.data.js 와 내용을 맞춰뒀습니다. 값을 바꿀 때 함께 수정하세요.
+  // 실제 프로젝트는 frontend/admin.html(관리자 페이지)에서 입력하면 여기 표시되는
+  // 데이터가 자동으로 최신 내용으로 교체됩니다. 아래 배열은 백엔드가 꺼져 있을 때만 쓰이는
+  // 예시용 기본값입니다 (아직 사용자에게 확인받지 않은 예시 값).
   // ============================================================
   var FALLBACK_PROJECTS = [
     {
       tag: '웹',
       title: '캠퍼스 에너지 안내',
-      summary: '건물별 정보를 쉽게 찾는 소개 화면',
       role: '화면 구성과 카드 디자인',
-      result: '가상 건물 3개의 안내 페이지 제작',
+      description: '건물별 정보를 쉽게 찾는 소개 화면. 가상 건물 3개의 안내 페이지 제작.',
+      date: '2026-03-01',
+      participantCount: 3,
+      notes: '',
       link: '#'
     },
     {
       tag: '데이터',
       title: '걷기 좋은 길 기록',
-      summary: '걷기 경험을 비교하는 기록 정리',
       role: '기록 항목 설계와 표 정리',
-      result: '가상 경로 3개의 비교 표 작성',
+      description: '걷기 경험을 비교하는 기록 정리. 가상 경로 3개의 비교 표 작성.',
+      date: '2026-04-01',
+      participantCount: 2,
+      notes: '',
       link: '#'
     },
     {
       tag: '웹',
       title: '우리 동네 쉼터 지도',
-      summary: '쉼터 정보를 읽기 쉽게 소개',
       role: '소개 문구와 화면 배치',
-      result: '실제 이용 효과는 아직 측정하지 않음',
+      description: '쉼터 정보를 읽기 쉽게 소개. 실제 이용 효과는 아직 측정하지 않음.',
+      date: '2026-05-01',
+      participantCount: 1,
+      notes: '',
       link: '#'
     }
     // 프로젝트를 추가하려면 위와 같은 형식으로 객체를 하나 더 넣으면 됩니다.
@@ -584,21 +591,32 @@
     if(count) count.textContent = '프로젝트 ' + visible.length + '개';
 
     grid.innerHTML = visible.map(function(p){
+      var notesField = p.notes ?
+        '<div class="detail-field">' +
+          '<div class="detail-label">참고사항</div>' +
+          '<p class="detail-value">' + p.notes + '</p>' +
+        '</div>' : '';
+
       return '' +
         '<article class="project-card">' +
           '<span class="project-tag">' + p.tag + '</span>' +
           '<h3>' + p.title + '</h3>' +
-          '<p class="project-summary">' + p.summary + '</p>' +
+          '<p class="project-summary">' + p.role + '</p>' +
           '<button class="project-toggle" type="button" aria-expanded="false">자세히 보기</button>' +
           '<div class="project-detail">' +
             '<div class="detail-field">' +
-              '<div class="detail-label">내 역할</div>' +
-              '<p class="detail-value">' + p.role + '</p>' +
+              '<div class="detail-label">설명</div>' +
+              '<p class="detail-value">' + p.description + '</p>' +
             '</div>' +
             '<div class="detail-field">' +
-              '<div class="detail-label">확인된 결과</div>' +
-              '<p class="detail-value">' + p.result + '</p>' +
+              '<div class="detail-label">날짜</div>' +
+              '<p class="detail-value">' + p.date + '</p>' +
             '</div>' +
+            '<div class="detail-field">' +
+              '<div class="detail-label">참여 인원</div>' +
+              '<p class="detail-value">' + p.participantCount + '명</p>' +
+            '</div>' +
+            notesField +
             '<a class="project-link" href="' + p.link + '">프로젝트 자료 보기</a>' +
           '</div>' +
         '</article>';

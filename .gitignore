@@ -1,0 +1,9 @@
+node_modules/
+.env
+
+# 로컬 실행 시 생기는 임시 로그/PID 파일 (npm run dev)
+*.pid.txt
+dev.out.log
+dev.err.log
+frontend.out.log
+frontend.err.log

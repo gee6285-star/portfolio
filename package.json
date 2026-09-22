@@ -1,0 +1,13 @@
+{
+  "name": "seondo-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "임성아 포트폴리오 - 프론트엔드/백엔드를 한 번에 실행하기 위한 루트 스크립트 (실제 코드는 frontend/, backend/ 에 있음)",
+  "scripts": {
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"npm --prefix backend start\" \"npx serve frontend -l 5500\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "serve": "^14.2.4"
+  }
+}

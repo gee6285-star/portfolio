@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "title": "캠퍼스 에너지 안내",
+    "tag": "웹",
+    "role": "화면 구성과 카드 디자인",
+    "description": "건물별 정보를 쉽게 찾는 소개 화면. 가상 건물 3개의 안내 페이지 제작.",
+    "date": "2026-03-01",
+    "participantCount": 3,
+    "notes": "",
+    "link": "#",
+    "status": "draft",
+    "createdAt": "2026-09-22T00:00:00.000Z",
+    "updatedAt": "2026-09-22T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "걷기 좋은 길 기록",
+    "tag": "데이터",
+    "role": "기록 항목 설계와 표 정리",
+    "description": "걷기 경험을 비교하는 기록 정리. 가상 경로 3개의 비교 표 작성.",
+    "date": "2026-04-01",
+    "participantCount": 2,
+    "notes": "",
+    "link": "#",
+    "status": "draft",
+    "createdAt": "2026-09-22T00:00:00.000Z",
+    "updatedAt": "2026-09-22T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "우리 동네 쉼터 지도",
+    "tag": "웹",
+    "role": "소개 문구와 화면 배치",
+    "description": "쉼터 정보를 읽기 쉽게 소개. 실제 이용 효과는 아직 측정하지 않음.",
+    "date": "2026-05-01",
+    "participantCount": 1,
+    "notes": "",
+    "link": "#",
+    "status": "draft",
+    "createdAt": "2026-09-22T00:00:00.000Z",
+    "updatedAt": "2026-09-22T00:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "title": "캠퍼스 내 조경설계",
+    "tag": "조경설계",
+    "role": "디자인",
+    "description": "조경설계",
+    "date": "2026-09-21",
+    "participantCount": 4,
+    "notes": "",
+    "link": "없음",
+    "status": "draft",
+    "createdAt": "2026-09-22T05:46:16.654Z",
+    "updatedAt": "2026-09-22T05:46:46.059Z"
+  },
+  {
+    "id": 5,
+    "title": "캠퍼스 내 조경설계",
+    "tag": "조경설계",
+    "role": "디자인",
+    "description": "조경설계",
+    "date": "2026-09-21",
+    "participantCount": 4,
+    "notes": "",
+    "link": "없음",
+    "status": "published",
+    "createdAt": "2026-09-22T05:52:02.095Z",
+    "updatedAt": "2026-09-22T05:52:02.095Z"
+  }
+]

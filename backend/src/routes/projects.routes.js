@@ -1,25 +1,25 @@
 // ============================================================
-// 프로젝트 관련 라우트 (URL과 처리 함수 연결만 담당)
-// 실제 데이터 처리는 projects.service.js 에 위임합니다.
+// 공개 프로젝트 라우트 (누구나 접근 가능)
+// 공개(published) 상태인 프로젝트만 내려줍니다. 초안(draft)은
+// backend/src/routes/admin.routes.js 쪽(로그인 필요)에서만 조회 가능합니다.
 // ============================================================
 const express = require('express');
 const router = express.Router();
-const { getAllProjects, getProjectById } = require('../services/projects.service');
+const { getPublishedProjects, getPublishedProjectById } = require('../services/projects.service');
 
-// GET /api/projects — 전체 프로젝트 목록
+// GET /api/projects — 공개된 프로젝트 전체 목록
 router.get('/', async (req, res, next) => {
   try {
-    const projects = await getAllProjects();
-    res.json(projects);
+    res.json(await getPublishedProjects());
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/projects/:id — 프로젝트 상세 하나
+// GET /api/projects/:id — 공개된 프로젝트 상세 하나
 router.get('/:id', async (req, res, next) => {
   try {
-    const project = await getProjectById(req.params.id);
+    const project = await getPublishedProjectById(req.params.id);
     if (!project) {
       return res.status(404).json({ message: '프로젝트를 찾을 수 없습니다.' });
     }

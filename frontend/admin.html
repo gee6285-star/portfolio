@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 - 임성아 포트폴리오</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  /* ============================================================
+     색상/폰트 변수 - frontend/portfolio_1.html과 동일하게 맞춰서
+     같은 사이트라는 느낌이 들도록 함
+     ============================================================ */
+  :root{
+    color-scheme: light dark;
+    --bg: #f6f7f3;
+    --surface: #ffffff;
+    --surface-2: #eef1ea;
+    --ink: #16211c;
+    --ink-soft: #45524a;
+    --ink-faint: #7c887f;
+    --accent: #1f6e4a;
+    --accent-soft: rgba(31,110,74,0.09);
+    --accent-2: #2c6ca6;
+    --danger: #b3402f;
+    --danger-soft: rgba(179,64,47,0.09);
+    --line: #d7ddd0;
+    --line-strong: #b9c2b2;
+    --shadow: 0 18px 40px -22px rgba(22,33,28,0.35);
+
+    --font-display: 'Gowun Batang', 'Nanum Myeongjo', serif;
+    --font-body: 'Gothic A1', 'Apple SD Gothic Neo', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0e1512; --surface: #141d19; --surface-2: #101815;
+      --ink: #e9ede6; --ink-soft: #aab5a7; --ink-faint: #7c887f;
+      --accent: #59c48a; --accent-soft: rgba(89,196,138,0.12); --accent-2: #74b3ea;
+      --danger: #e08469; --danger-soft: rgba(224,132,105,0.12);
+      --line: #263029; --line-strong: #34413a;
+      --shadow: 0 18px 44px -22px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0e1512; --surface: #141d19; --surface-2: #101815;
+    --ink: #e9ede6; --ink-soft: #aab5a7; --ink-faint: #7c887f;
+    --accent: #59c48a; --accent-soft: rgba(89,196,138,0.12); --accent-2: #74b3ea;
+    --danger: #e08469; --danger-soft: rgba(224,132,105,0.12);
+    --line: #263029; --line-strong: #34413a;
+    --shadow: 0 18px 44px -22px rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing: border-box; }
+  body{
+    margin:0; background: var(--bg); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.6;
+  }
+  .admin-shell{ max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* ---------------- 헤더 ---------------- */
+  .admin-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .admin-header h1{
+    font-family: var(--font-display); font-size: 22px; margin:0;
+  }
+  .admin-header .sub{ font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+
+  button{ font-family: var(--font-body); cursor: pointer; }
+  .btn{
+    border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink); border-radius: 8px; padding: 8px 16px; font-size: 13.5px;
+  }
+  .btn:hover{ border-color: var(--accent); color: var(--accent); }
+  .btn-primary{ background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover{ opacity: .92; color:#fff; }
+  .btn-ghost{ border-color: transparent; background: transparent; }
+  .btn-ghost:hover{ background: var(--surface-2); color: var(--ink); }
+
+  /* ---------------- 로그인 화면 ---------------- */
+  .login-card{
+    max-width: 360px; margin: 80px auto; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 14px; padding: 32px;
+    box-shadow: var(--shadow);
+  }
+  .login-card h1{ font-family: var(--font-display); font-size: 20px; margin: 0 0 6px; }
+  .login-card p{ color: var(--ink-faint); font-size: 13px; margin: 0 0 20px; }
+  .login-card input{ width: 100%; }
+  .login-card .btn-primary{ width: 100%; margin-top: 12px; }
+  .error-text{ color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 1em; }
+
+  /* ---------------- 폼 공통 ---------------- */
+  input, textarea, select{
+    font-family: var(--font-body); font-size: 14px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line-strong);
+    border-radius: 8px; padding: 10px 12px; width: 100%;
+  }
+  input::placeholder, textarea::placeholder{ color: var(--ink-faint); }
+  input:focus, textarea:focus, select:focus{ outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  textarea{ resize: vertical; min-height: 80px; }
+  label{ font-size: 12.5px; font-family: var(--font-mono); color: var(--ink-soft); letter-spacing: .03em; }
+
+  .field{ margin-bottom: 16px; }
+  .field .required-mark{ color: var(--danger); margin-left: 2px; }
+  .field.has-error input,
+  .field.has-error textarea{ border-color: var(--danger); }
+  .field-row{ display:flex; gap: 14px; }
+  .field-row .field{ flex: 1; }
+
+  .status-choice{ display:flex; gap: 10px; }
+  .status-choice label{
+    display:flex; align-items:center; gap:6px; border:1px solid var(--line-strong);
+    border-radius: 8px; padding: 8px 14px; font-family: var(--font-body); font-size: 13.5px;
+    color: var(--ink-faint); cursor:pointer; transition: border-color .15s, color .15s, background .15s;
+  }
+  .status-choice input{ width:auto; }
+  /* 라디오가 선택된 쪽 박스를 눈에 띄게 강조 (선택 상태가 명확히 보이도록) */
+  .status-choice label:has(input:checked){
+    border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 600;
+  }
+
+  /* ---------------- 프로젝트 목록 ---------------- */
+  .project-list{ display:flex; flex-direction: column; gap: 10px; margin-bottom: 36px; }
+  .project-row{
+    display:flex; align-items:center; gap: 12px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px;
+  }
+  .project-row .badge{
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing:.05em;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .badge-draft{ background: var(--surface-2); color: var(--ink-faint); }
+  .badge-published{ background: var(--accent-soft); color: var(--accent); }
+  .project-row .row-title{ font-weight: 600; flex: 1; min-width: 0; }
+  .project-row .row-title small{ display:block; font-weight: 400; color: var(--ink-faint); font-size: 12px; }
+  .empty-note{ color: var(--ink-faint); font-size: 13.5px; padding: 20px 0; }
+
+  /* ---------------- 중복 의심 프로젝트 ---------------- */
+  .duplicate-group{
+    border: 1px solid var(--danger); background: var(--danger-soft);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
+  }
+  .duplicate-group h3{ font-size: 14.5px; margin: 0 0 10px; color: var(--ink); }
+  .duplicate-entry{
+    display:flex; align-items:center; gap: 12px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;
+  }
+  .duplicate-entry:last-child{ margin-bottom: 0; }
+  .duplicate-entry .entry-info{ flex:1; min-width:0; font-size: 13px; }
+  .duplicate-entry .entry-info small{ display:block; color: var(--ink-faint); margin-top: 2px; }
+  .btn-danger{ border-color: var(--danger); color: var(--danger); }
+  .btn-danger:hover{ background: var(--danger-soft); color: var(--danger); }
+
+  /* ---------------- 폼 카드 ---------------- */
+  .form-card{
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .form-card h2{ font-family: var(--font-display); font-size: 18px; margin: 0 0 4px; }
+  .form-card .form-mode{ font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); margin-bottom: 18px; }
+  .form-actions{ display:flex; gap: 10px; margin-top: 6px; }
+  .save-message{ font-size: 13px; margin-top: 12px; min-height: 1em; }
+  .save-message.ok{ color: var(--accent); }
+  .save-message.err{ color: var(--danger); }
+
+  section{ margin-bottom: 40px; }
+  section > h2.section-title{
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing:.08em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: 14px;
+  }
+
+  [hidden]{ display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     로그인 화면 - admin_token 쿠키가 없거나 만료되면 이 화면이 보임
+     ============================================================ -->
+<div class="login-card" id="loginCard">
+  <h1>관리자 로그인</h1>
+  <p>포트폴리오 프로젝트를 관리하려면 비밀번호를 입력하세요.</p>
+  <form id="loginForm">
+    <input type="password" id="loginPassword" placeholder="비밀번호" autocomplete="off" autocorrect="off" spellcheck="false" required>
+    <button type="submit" class="btn btn-primary">로그인</button>
+  </form>
+  <div class="error-text" id="loginError"></div>
+</div>
+
+<!-- ============================================================
+     관리자 대시보드 - 로그인 성공 후에만 보임
+     ============================================================ -->
+<div class="admin-shell" id="adminShell" hidden>
+  <div class="admin-header">
+    <div>
+      <h1>프로젝트 관리자</h1>
+      <div class="sub">임성아 포트폴리오 · 관리자 전용</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <a class="btn btn-ghost" href="./portfolio_1.html" target="_blank" rel="noopener">공개 페이지 보기</a>
+      <button type="button" class="btn" id="logoutBtn">로그아웃</button>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">전체 프로젝트 (초안 포함)</h2>
+    <div class="project-list" id="projectList"></div>
+    <div class="empty-note" id="projectEmpty" hidden>아직 등록된 프로젝트가 없습니다. 아래에서 새로 작성하세요.</div>
+    <button type="button" class="btn" id="newProjectBtn">+ 새 프로젝트 작성</button>
+  </section>
+
+  <!-- ============================================================
+       중복 의심 프로젝트 - 제목이 같은 프로젝트가 2건 이상이면 여기 표시됨.
+       자동으로 합치지는 않고, 나란히 보여줘서 직접 수정하거나 삭제로 정리하도록 함.
+       중복이 없으면 섹션 전체를 숨김.
+       ============================================================ -->
+  <section id="duplicateSection" hidden>
+    <h2 class="section-title">⚠ 중복 의심 프로젝트</h2>
+    <p class="empty-note" style="padding-top:0;">제목이 같은 프로젝트가 여러 건 있습니다. 내용을 비교해서 필요 없는 쪽은 "삭제"하거나, "수정"으로 하나로 정리하세요.</p>
+    <div id="duplicateGroups"></div>
+  </section>
+
+  <section>
+    <div class="form-card">
+      <h2>프로젝트 작성/수정</h2>
+      <div class="form-mode" id="formMode">새 프로젝트 작성 중</div>
+
+      <form id="projectForm">
+        <div class="field" data-field="title">
+          <label>제목<span class="required-mark">*</span></label>
+          <input type="text" name="title" placeholder="예: 캠퍼스 에너지 안내 웹페이지 제작">
+        </div>
+
+        <div class="field-row">
+          <div class="field" data-field="tag">
+            <label>분야<span class="required-mark">*</span></label>
+            <input type="text" name="tag" placeholder="예: 웹, 데이터, 디자인">
+          </div>
+          <div class="field" data-field="role">
+            <label>내가 한 역할<span class="required-mark">*</span></label>
+            <input type="text" name="role" placeholder="예: 화면 구성과 카드 디자인 담당">
+          </div>
+        </div>
+
+        <div class="field" data-field="description">
+          <label>설명<span class="required-mark">*</span></label>
+          <textarea name="description" placeholder="예: 어떤 문제를 해결하려고 했는지, 무엇을 만들었는지 구체적으로 설명해주세요."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field" data-field="date">
+            <label>날짜<span class="required-mark">*</span></label>
+            <input type="date" name="date">
+          </div>
+          <div class="field" data-field="participantCount">
+            <label>참여 인원 수<span class="required-mark">*</span></label>
+            <input type="number" name="participantCount" min="1" placeholder="예: 3">
+          </div>
+        </div>
+
+        <div class="field" data-field="link">
+          <label>프로젝트 자료 링크<span class="required-mark">*</span></label>
+          <input type="text" name="link" placeholder="예: https://... 또는 자료가 없으면 # 입력">
+        </div>
+
+        <div class="field" data-field="notes">
+          <label>참고사항 <span style="color:var(--ink-faint); font-weight:400;">(선택)</span></label>
+          <textarea name="notes" placeholder="예: 팀 프로젝트였음, 수상 내역, 추가로 남기고 싶은 말 등"></textarea>
+        </div>
+
+        <div class="field">
+          <label>공개 상태</label>
+          <div class="status-choice">
+            <label><input type="radio" name="status" value="draft" checked> 초안 (나만 보기)</label>
+            <label><input type="radio" name="status" value="published"> 공개 (사이트에 노출)</label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="saveBtn">새로 저장</button>
+          <button type="button" class="btn btn-ghost" id="cancelEditBtn" hidden>취소</button>
+        </div>
+        <div class="save-message" id="saveMessage"></div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<script>
+  // ============================================================
+  // 백엔드 주소 (배포 시 실제 주소로 변경)
+  // ============================================================
+  var API_BASE = 'http://localhost:4000/api';
+
+  // 공개 시 반드시 채워야 하는 항목 (참고사항 제외) - 백엔드 검증 규칙과 동일하게 맞춤
+  var REQUIRED_FOR_PUBLISH = ['title', 'tag', 'role', 'description', 'date', 'participantCount', 'link'];
+  var FIELD_LABEL = {
+    title: '제목', tag: '분야', role: '내가 한 역할', description: '설명',
+    date: '날짜', participantCount: '참여 인원 수', link: '프로젝트 자료 링크'
+  };
+
+  var editingId = null; // null이면 "새로 저장" 모드, 값이 있으면 그 id를 수정하는 중
+
+  var loginCard = document.getElementById('loginCard');
+  var adminShell = document.getElementById('adminShell');
+  var loginForm = document.getElementById('loginForm');
+  var loginError = document.getElementById('loginError');
+  var projectList = document.getElementById('projectList');
+  var projectEmpty = document.getElementById('projectEmpty');
+  var projectForm = document.getElementById('projectForm');
+  var formMode = document.getElementById('formMode');
+  var saveBtn = document.getElementById('saveBtn');
+  var cancelEditBtn = document.getElementById('cancelEditBtn');
+  var saveMessage = document.getElementById('saveMessage');
+
+  // ------------------------------------------------------------
+  // 화면 전환
+  // ------------------------------------------------------------
+  function showLogin(message){
+    loginCard.hidden = false;
+    adminShell.hidden = true;
+    loginError.textContent = message || '';
+  }
+  function showDashboard(){
+    loginCard.hidden = true;
+    adminShell.hidden = false;
+  }
+
+  // ------------------------------------------------------------
+  // 페이지 진입 시 항상 새로 로그인하게 함 (보안 요구사항)
+  //
+  // 예전에는 로그인 쿠키가 남아있으면 자동으로 대시보드로 들어갔지만,
+  // "창을 닫았다 새로 열어도 비밀번호를 항상 다시 입력해야 한다"는 요청에 따라
+  // 페이지를 열 때마다 기존 로그인 쿠키를 무조건 지우고 로그인 화면부터 보여줍니다.
+  // (쿠키 자체도 "세션 쿠키"라 브라우저를 완전히 껐다 켜면 자동으로 사라지지만,
+  //  브라우저를 안 끄고 새 창/새 탭만 열어도 항상 다시 로그인하도록 이중으로 막아둔 것)
+  // ------------------------------------------------------------
+  function forceFreshLogin(){
+    fetch(API_BASE + '/admin/logout', { method: 'POST', credentials: 'include' })
+      .catch(function(){ /* 백엔드가 꺼져 있어도 로그인 화면은 그대로 보여주면 됨 */ })
+      .finally(function(){ showLogin(); });
+  }
+
+  // ------------------------------------------------------------
+  // 로그인 / 로그아웃
+  // ------------------------------------------------------------
+  loginForm.addEventListener('submit', function(event){
+    event.preventDefault();
+    var password = document.getElementById('loginPassword').value;
+    loginError.textContent = '';
+    fetch(API_BASE + '/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ password: password })
+    })
+      .then(function(res){
+        if(!res.ok) return res.json().then(function(body){ throw new Error(body.message || '로그인 실패'); });
+        return res.json();
+      })
+      .then(function(){
+        document.getElementById('loginPassword').value = '';
+        showDashboard();
+        loadProjects();
+        loadDuplicates();
+      })
+      .catch(function(err){ loginError.textContent = err.message; });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    fetch(API_BASE + '/admin/logout', { method: 'POST', credentials: 'include' })
+      .finally(function(){ showLogin(); });
+  });
+
+  // ------------------------------------------------------------
+  // 프로젝트 목록 불러오기 (초안 + 공개 전체)
+  // ------------------------------------------------------------
+  function loadProjects(){
+    fetch(API_BASE + '/admin/projects', { credentials: 'include' })
+      .then(function(res){
+        if(res.status === 401){ showLogin('세션이 만료됐습니다. 다시 로그인하세요.'); throw new Error('unauthorized'); }
+        return res.json();
+      })
+      .then(renderProjectList)
+      .catch(function(){ /* 로그인 화면으로 이미 전환됨 */ });
+  }
+
+  function renderProjectList(projects){
+    projectList.innerHTML = '';
+    projectEmpty.hidden = projects.length > 0;
+
+    projects.slice().sort(function(a, b){ return b.id - a.id; }).forEach(function(p){
+      var row = document.createElement('div');
+      row.className = 'project-row';
+
+      var badge = document.createElement('span');
+      badge.className = 'badge ' + (p.status === 'published' ? 'badge-published' : 'badge-draft');
+      badge.textContent = p.status === 'published' ? '공개' : '초안';
+
+      var titleBox = document.createElement('div');
+      titleBox.className = 'row-title';
+      titleBox.innerHTML = (p.title || '(제목 없음)') + '<small>' + (p.tag || '분야 미입력') + ' · ' + (p.date || '날짜 미입력') + '</small>';
+
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn';
+      editBtn.textContent = '수정';
+      editBtn.addEventListener('click', function(){ startEdit(p); });
+
+      var deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-danger';
+      deleteBtn.textContent = '삭제';
+      deleteBtn.addEventListener('click', function(){ deleteProjectById(p.id, p.title); });
+
+      row.appendChild(badge);
+      row.appendChild(titleBox);
+      row.appendChild(editBtn);
+      row.appendChild(deleteBtn);
+      projectList.appendChild(row);
+    });
+  }
+
+  // ------------------------------------------------------------
+  // 중복 의심 프로젝트 (제목이 같은 것끼리 묶어서 보여줌)
+  // ------------------------------------------------------------
+  var duplicateSection = document.getElementById('duplicateSection');
+  var duplicateGroups = document.getElementById('duplicateGroups');
+
+  function loadDuplicates(){
+    fetch(API_BASE + '/admin/projects/duplicates', { credentials: 'include' })
+      .then(function(res){ return res.ok ? res.json() : []; })
+      .then(renderDuplicateGroups)
+      .catch(function(){ /* 목록 갱신 실패 시에는 그냥 이전 상태 유지 */ });
+  }
+
+  function renderDuplicateGroups(groups){
+    duplicateSection.hidden = groups.length === 0;
+    duplicateGroups.innerHTML = '';
+
+    groups.forEach(function(group){
+      var box = document.createElement('div');
+      box.className = 'duplicate-group';
+
+      var heading = document.createElement('h3');
+      heading.textContent = '"' + group[0].title + '" - ' + group.length + '건 중복 의심';
+      box.appendChild(heading);
+
+      group.forEach(function(p){
+        var entry = document.createElement('div');
+        entry.className = 'duplicate-entry';
+
+        var info = document.createElement('div');
+        info.className = 'entry-info';
+        var statusLabel = p.status === 'published' ? '공개' : '초안';
+        info.innerHTML = '(' + statusLabel + ') ' + (p.tag || '분야 미입력') + ' · ' + (p.date || '날짜 미입력') +
+          '<small>수정일: ' + (p.updatedAt ? p.updatedAt.slice(0, 10) : '-') + '</small>';
+
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn';
+        editBtn.textContent = '수정';
+        editBtn.addEventListener('click', function(){ startEdit(p); });
+
+        var deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn btn-danger';
+        deleteBtn.textContent = '삭제';
+        deleteBtn.addEventListener('click', function(){ deleteProjectById(p.id, p.title); });
+
+        entry.appendChild(info);
+        entry.appendChild(editBtn);
+        entry.appendChild(deleteBtn);
+        box.appendChild(entry);
+      });
+
+      duplicateGroups.appendChild(box);
+    });
+  }
+
+  // ------------------------------------------------------------
+  // 프로젝트 삭제 (일반 목록 + 중복 의심 패널 공용)
+  // ------------------------------------------------------------
+  function deleteProjectById(id, title){
+    if(!window.confirm('"' + title + '" 항목을 삭제할까요? 되돌릴 수 없습니다.')) return;
+    fetch(API_BASE + '/admin/projects/' + id, { method: 'DELETE', credentials: 'include' })
+      .then(function(res){
+        if(!res.ok) throw new Error('삭제 실패');
+        if(editingId === id) resetForm(); // 지금 수정 중이던 항목이 삭제되면 폼도 초기화
+        loadProjects();
+        loadDuplicates();
+      })
+      .catch(function(){ window.alert('삭제에 실패했습니다. 다시 시도해주세요.'); });
+  }
+
+  // ------------------------------------------------------------
+  // 폼 채우기 / 초기화
+  // ------------------------------------------------------------
+  function clearFieldErrors(){
+    projectForm.querySelectorAll('.field.has-error').forEach(function(el){ el.classList.remove('has-error'); });
+  }
+
+  function resetForm(){
+    editingId = null;
+    projectForm.reset();
+    clearFieldErrors();
+    formMode.textContent = '새 프로젝트 작성 중';
+    saveBtn.textContent = '새로 저장';
+    cancelEditBtn.hidden = true;
+    saveMessage.textContent = '';
+  }
+
+  function startEdit(project){
+    editingId = project.id;
+    clearFieldErrors();
+    projectForm.title.value = project.title || '';
+    projectForm.tag.value = project.tag || '';
+    projectForm.role.value = project.role || '';
+    projectForm.description.value = project.description || '';
+    projectForm.date.value = project.date || '';
+    projectForm.participantCount.value = project.participantCount || '';
+    projectForm.link.value = project.link || '';
+    projectForm.notes.value = project.notes || '';
+    var statusRadio = projectForm.querySelector('input[name="status"][value="' + project.status + '"]');
+    if(statusRadio) statusRadio.checked = true;
+
+    formMode.textContent = '"' + project.title + '" 수정 중 (id: ' + project.id + ')';
+    saveBtn.textContent = '수정 저장';
+    cancelEditBtn.hidden = false;
+    saveMessage.textContent = '';
+    projectForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('newProjectBtn').addEventListener('click', resetForm);
+  cancelEditBtn.addEventListener('click', resetForm);
+
+  // ------------------------------------------------------------
+  // 저장 전 화면단 검증 (공개 상태일 때만 참고사항 제외 전 항목 필수)
+  // 최종 검증은 백엔드에서도 동일하게 하므로, 여기서는 사용자 편의를 위한 사전 확인용
+  // ------------------------------------------------------------
+  function validateBeforeSubmit(data){
+    clearFieldErrors();
+    if(data.status !== 'published') return [];
+
+    var missing = REQUIRED_FOR_PUBLISH.filter(function(field){
+      var value = data[field];
+      if(field === 'participantCount') return !value || Number(value) <= 0;
+      return !value || String(value).trim() === '';
+    });
+
+    missing.forEach(function(field){
+      var el = projectForm.querySelector('.field[data-field="' + field + '"]');
+      if(el) el.classList.add('has-error');
+    });
+
+    return missing;
+  }
+
+  // ------------------------------------------------------------
+  // 저장 (새로 저장 / 수정)
+  // ------------------------------------------------------------
+  projectForm.addEventListener('submit', function(event){
+    event.preventDefault();
+
+    var formData = new FormData(projectForm);
+    var data = {
+      title: formData.get('title') || '',
+      tag: formData.get('tag') || '',
+      role: formData.get('role') || '',
+      description: formData.get('description') || '',
+      date: formData.get('date') || '',
+      participantCount: formData.get('participantCount') || '',
+      link: formData.get('link') || '',
+      notes: formData.get('notes') || '',
+      status: formData.get('status') || 'draft'
+    };
+
+    var missing = validateBeforeSubmit(data);
+    if(missing.length > 0){
+      saveMessage.className = 'save-message err';
+      saveMessage.textContent = '공개하려면 다음 항목을 채워야 합니다: ' + missing.map(function(f){ return FIELD_LABEL[f]; }).join(', ');
+      return;
+    }
+
+    var isEdit = editingId !== null;
+    var url = isEdit ? (API_BASE + '/admin/projects/' + editingId) : (API_BASE + '/admin/projects');
+    var method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data)
+    })
+      .then(function(res){
+        return res.json().then(function(body){
+          if(!res.ok) throw Object.assign(new Error(body.message || '저장 실패'), { fields: body.fields });
+          return body;
+        });
+      })
+      .then(function(savedProject){
+        resetForm();
+        saveMessage.className = 'save-message ok';
+        saveMessage.textContent = isEdit ? '수정 저장 완료' : '새 프로젝트 저장 완료';
+        if(savedProject && savedProject.hasDuplicate){
+          saveMessage.textContent += ' ⚠️ 같은 제목의 프로젝트가 이미 있어요 — 아래 "중복 의심 프로젝트"를 확인하세요.';
+        }
+        loadProjects();
+        loadDuplicates();
+      })
+      .catch(function(err){
+        saveMessage.className = 'save-message err';
+        saveMessage.textContent = err.message + (err.fields ? ' (' + err.fields.map(function(f){ return FIELD_LABEL[f] || f; }).join(', ') + ')' : '');
+      });
+  });
+
+  forceFreshLogin();
+</script>
+</body>
+</html>
