@@ -1,0 +1,15 @@
+{
+  "name": "seondo-portfolio-backend",
+  "version": "0.1.0",
+  "description": "임성아 포트폴리오 백엔드 API 서버 (DB 미연결 상태 - 추후 연동 예정)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

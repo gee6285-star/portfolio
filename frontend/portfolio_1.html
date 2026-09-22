@@ -241,6 +241,13 @@
   }
   .placeholder b{ font-style: normal; color: var(--ink-soft); }
 
+  /* 내용이 채워진 확정 텍스트 박스 (legend의 "실선 — 확정된 정보"에 대응) */
+  .content-box{
+    border: 1px solid var(--line); background: var(--surface);
+    border-radius: 8px; padding: 22px 24px; color: var(--ink-soft);
+    font-size: 14.5px; max-width: 68ch;
+  }
+
   .chip-row{ display:flex; flex-wrap: wrap; gap: 10px; }
   .chip-slot{
     border: 1.5px dashed var(--accent); background: var(--placeholder-bg);
@@ -265,6 +272,66 @@
   .list-slot:last-child{ border-bottom: none; }
   .list-slot svg{ width: 17px; height: 17px; flex: none; margin-top: 3px; color: var(--ink-faint); }
   .list-slot span{ font-size: 14px; font-style: italic; color: var(--ink-faint); }
+
+  /* ---------- project explorer (필터 + 카드가 들어가는 연한 패널) ---------- */
+  .section-hint{ font-size: 13px; color: var(--ink-faint); margin: -14px 0 20px 34px; }
+  .project-panel{
+    background: var(--surface-2); border-radius: 10px;
+    padding: clamp(18px, 2.4vw, 28px);
+  }
+
+  /* 필터 버튼 줄 */
+  .filter-row{ display:flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .filter-btn{
+    font-family: var(--font-body); font-size: 13.5px; font-weight: 500; color: var(--ink-soft);
+    border: 1px solid var(--line-strong); border-radius: 7px; padding: 7px 16px;
+    background: var(--surface); cursor: pointer;
+    transition: color .15s, background-color .15s, border-color .15s;
+  }
+  .filter-btn:hover{ color: var(--ink); border-color: var(--ink-faint); }
+  .filter-btn.active{ color: var(--surface); background: var(--ink); border-color: var(--ink); }
+
+  /* 표시 중인 프로젝트 개수 */
+  .project-count{ font-size: 13px; color: var(--ink-faint); margin: 0 0 14px; }
+
+  /* 카드 그리드 */
+  .project-grid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px; align-items: start;
+  }
+  .project-card{
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); padding: 20px 22px;
+  }
+  .project-tag{
+    display:block; margin-bottom: 10px;
+    color: var(--accent); font-size: 12px; font-weight: 700;
+  }
+  .project-card h3{ font-family: var(--font-body); font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+  .project-summary{ margin: 0 0 16px; color: var(--ink-soft); font-size: .9rem; }
+  .project-toggle{
+    border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface);
+    padding: 7px 14px; cursor: pointer;
+    font-family: var(--font-body); font-size: 13px; color: var(--ink);
+    transition: background-color .15s, border-color .15s;
+  }
+  .project-toggle:hover{ background: var(--surface-2); border-color: var(--ink-faint); }
+
+  /* 펼쳤을 때 나오는 상세 정보 */
+  .project-detail{
+    display:none; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line);
+  }
+  .project-card.is-open .project-detail{ display:block; }
+  .detail-field + .detail-field{ margin-top: 14px; }
+  .detail-label{ font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+  .detail-value{ margin: 0; color: var(--ink-soft); font-size: .88rem; }
+  .project-link{
+    display:inline-block; margin-top: 16px;
+    color: var(--accent-2); font-size: .85rem; text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  .filter-empty{ font-size: 13.5px; color: var(--ink-faint); font-style: italic; padding: 8px 0 4px; }
+  .panel-note{ font-size: 12px; color: var(--ink-faint); margin: 16px 0 0; }
 
   /* ---------- footer ---------- */
   footer{ padding: 44px 0 60px; }
@@ -355,36 +422,38 @@
 
   <section class="zone wrap" id="intro">
     <div class="zone-head"><span class="zone-num">01</span><h2>자기소개</h2></div>
-    <div class="placeholder">이곳에 자기소개를 작성하세요. 성장 배경, 그린스마트시티학과를 선택한 이유, 성격이나 강점을 자유롭게 소개할 수 있는 공간입니다. <b>예)</b> "저는 도시 문제를 데이터와 기술로 풀어가는 데 관심이 많은 학생입니다…"</div>
+    <div class="content-box">저는 도시 문제를 데이터와 기술로 이해하고 해결하는 방식에 관심이 많은 학생입니다. 그린스마트시티학과에서 도시 인프라, 공간정보, 환경, 토지정보와 같은 영역을 학습하면서, 현장의 문제를 분석하고 실질적인 개선 방향을 제시하는 능력을 키우고 있습니다. 단순히 지식을 배우는 것을 넘어, 실제 데이터를 기반으로 문제를 정의하고 해석하는 과정을 중요하게 생각합니다.</div>
   </section>
 
   <section class="zone wrap" id="education">
     <div class="zone-head"><span class="zone-num">02</span><h2>학력 및 전공 소개</h2></div>
     <div class="zone-fact">상명대학교 · 그린스마트시티학과 · 학번 202421389</div>
-    <div class="placeholder">전공에서 특히 관심 있는 분야(예: 스마트 인프라, 도시 데이터, 친환경 에너지, GIS 등)와 그 이유를 작성해 보세요.</div>
+    <div class="content-box">상명대학교 그린스마트시티학과에서 스마트시티, 공간정보, 도시 인프라, 환경 문제에 대해 학습하고 있습니다. 전공을 통해 도시와 기술이 어떻게 연결되는지를 이해하고, 데이터와 공간 정보를 활용해 현실적인 문제를 분석하는 역량을 쌓아가고 있습니다. 특히 스마트 인프라와 도시문제 해결에 관심을 두고 있으며, 이를 위해 관련 데이터를 기반으로 문제를 정의하고 해석하는 과정을 꾸준히 연습하고 있습니다.</div>
   </section>
 
   <section class="zone wrap" id="skills">
     <div class="zone-head"><span class="zone-num">03</span><h2>보유 역량 및 기술</h2></div>
-    <div class="chip-row">
-      <span class="chip-slot">역량 항목 1을 입력하세요</span>
-      <span class="chip-slot">역량 항목 2를 입력하세요</span>
-      <span class="chip-slot">역량 항목 3을 입력하세요</span>
-      <span class="chip-slot">+ 더 추가하기</span>
+    <div class="tag-row">
+      <span>기초 데이터 분석</span>
+      <span>GIS/공간정보 이해</span>
+      <span>문서 정리 능력</span>
+      <span>발표 및 협업</span>
+      <span>문제 정의 및 해결</span>
+      <span>토지정보 활용</span>
     </div>
   </section>
 
   <section class="zone wrap" id="projects">
     <div class="zone-head"><span class="zone-num">04</span><h2>프로젝트 / 과제 경험</h2></div>
-    <div class="scroll-x">
-      <table class="schedule">
-        <caption>Project Schedule — 프로젝트 일람표</caption>
-        <thead><tr><th>No.</th><th>프로젝트명</th><th>기간</th><th>역할</th><th>내용</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">1</td><td>프로젝트명을 입력하세요</td><td>기간</td><td>역할</td><td>수행한 내용을 간단히 적어보세요</td></tr>
-          <tr><td class="mono">2</td><td>프로젝트명을 입력하세요</td><td>기간</td><td>역할</td><td>수행한 내용을 간단히 적어보세요</td></tr>
-        </tbody>
-      </table>
+    <p class="section-hint">분야를 선택하면 해당 프로젝트만 보이고, "자세히 보기"를 누르면 상세 정보가 열립니다.</p>
+    <!-- 분야 필터 버튼과 카드는 모두 이 파일 맨 아래 스크립트의 PROJECTS 데이터로 자동 생성됩니다. -->
+    <!-- 실제 프로젝트가 정해지면 PROJECTS 배열의 값만 바꾸면 됩니다 (마크업 수정 불필요). -->
+    <div class="project-panel">
+      <div class="filter-row" id="projectFilter"></div>
+      <p class="project-count" id="projectCount"></p>
+      <div class="project-grid" id="projectGrid"></div>
+      <p class="filter-empty" id="projectEmpty" hidden>해당 분야의 프로젝트가 아직 없습니다.</p>
+      <p class="panel-note">※ 현재 카드는 강의자료의 가상 프로젝트 예시입니다. 실제 프로젝트로 교체 예정입니다.</p>
     </div>
   </section>
 
@@ -410,7 +479,7 @@
 
   <section class="zone wrap" id="plans">
     <div class="zone-head"><span class="zone-num">07</span><h2>향후 계획 및 목표</h2></div>
-    <div class="placeholder">졸업 후 진로, 대학원 진학, 관심 있는 취업 분야 등 앞으로의 계획과 목표를 작성해 보세요.</div>
+    <div class="content-box">졸업 후에는 도시문제 해결과 데이터 기반 의사결정에 관심을 두고, 관련 분야에서 실무 역량을 쌓고자 합니다. 스마트시티와 공간정보를 활용한 문제 해결에 기여할 수 있는 직무를 탐색하며, 지속적으로 학습과 프로젝트 경험을 쌓아가고자 합니다.</div>
   </section>
 
   <section class="zone wrap" id="attachments" style="border-bottom:none;">
@@ -427,6 +496,181 @@
 </footer>
 
 <script>
+  // ============================================================
+  // 백엔드 API 주소
+  // backend/ 서버가 켜져 있으면 이 주소에서 최신 프로젝트 데이터를 받아옵니다.
+  // 서버가 꺼져 있거나 주소가 다르면(예: 배포 후) 아래 FALLBACK_PROJECTS를 그대로 사용합니다.
+  // ============================================================
+  var API_BASE_URL = 'http://localhost:4000/api/projects';
+
+  // ============================================================
+  // 프로젝트 데이터 (기본값 / 백엔드 미연결 시 사용)
+  // 실제 프로젝트가 정해지면 이 배열의 값만 채우면 카드가 자동으로 생성됩니다.
+  // (아직 사용자에게 확인받지 않은 예시 값이므로, 실제 내용으로 반드시 교체해야 합니다.)
+  // backend/src/data/projects.data.js 와 내용을 맞춰뒀습니다. 값을 바꿀 때 함께 수정하세요.
+  // ============================================================
+  var FALLBACK_PROJECTS = [
+    {
+      tag: '웹',
+      title: '캠퍼스 에너지 안내',
+      summary: '건물별 정보를 쉽게 찾는 소개 화면',
+      role: '화면 구성과 카드 디자인',
+      result: '가상 건물 3개의 안내 페이지 제작',
+      link: '#'
+    },
+    {
+      tag: '데이터',
+      title: '걷기 좋은 길 기록',
+      summary: '걷기 경험을 비교하는 기록 정리',
+      role: '기록 항목 설계와 표 정리',
+      result: '가상 경로 3개의 비교 표 작성',
+      link: '#'
+    },
+    {
+      tag: '웹',
+      title: '우리 동네 쉼터 지도',
+      summary: '쉼터 정보를 읽기 쉽게 소개',
+      role: '소개 문구와 화면 배치',
+      result: '실제 이용 효과는 아직 측정하지 않음',
+      link: '#'
+    }
+    // 프로젝트를 추가하려면 위와 같은 형식으로 객체를 하나 더 넣으면 됩니다.
+  ];
+
+  // 실제 화면에 쓰이는 데이터. 처음엔 기본값이고, 백엔드 응답이 오면 교체됩니다.
+  var PROJECTS = FALLBACK_PROJECTS;
+
+  // 아직 프로젝트가 없지만 필터 버튼에는 띄우고 싶은 분야
+  var EXTRA_TAGS = ['디자인'];
+
+  // ============================================================
+  // 분야 필터 상태 — "전체"가 기본값
+  // ============================================================
+  var currentFilter = '전체';
+
+  // PROJECTS의 tag 값에서 중복 없이 분야 목록을 뽑는다 ("전체" + 실제 tag들).
+  // 분야 목록을 따로 관리하지 않아도 되도록, PROJECTS만 보고 자동으로 만들어진다.
+  function getFilterOptions(){
+    var tags = PROJECTS.map(function(p){ return p.tag; }).concat(EXTRA_TAGS);
+    var unique = tags.filter(function(tag, i){ return tags.indexOf(tag) === i; });
+    return ['전체'].concat(unique);
+  }
+
+  // ============================================================
+  // 분야 필터 버튼 렌더링
+  // ============================================================
+  function renderFilters(){
+    var filterRow = document.getElementById('projectFilter');
+    if(!filterRow) return;
+    filterRow.innerHTML = getFilterOptions().map(function(tag){
+      var activeClass = tag === currentFilter ? ' active' : '';
+      return '<button type="button" class="filter-btn' + activeClass + '" data-filter="' + tag + '">' + tag + '</button>';
+    }).join('');
+  }
+
+  // ============================================================
+  // 프로젝트 카드 렌더링 (PROJECTS 배열 → HTML, 현재 필터에 맞는 것만)
+  // ============================================================
+  function renderProjects(){
+    var grid = document.getElementById('projectGrid');
+    var empty = document.getElementById('projectEmpty');
+    var count = document.getElementById('projectCount');
+    if(!grid) return;
+
+    var visible = PROJECTS.filter(function(p){
+      return currentFilter === '전체' || p.tag === currentFilter;
+    });
+
+    if(count) count.textContent = '프로젝트 ' + visible.length + '개';
+
+    grid.innerHTML = visible.map(function(p){
+      return '' +
+        '<article class="project-card">' +
+          '<span class="project-tag">' + p.tag + '</span>' +
+          '<h3>' + p.title + '</h3>' +
+          '<p class="project-summary">' + p.summary + '</p>' +
+          '<button class="project-toggle" type="button" aria-expanded="false">자세히 보기</button>' +
+          '<div class="project-detail">' +
+            '<div class="detail-field">' +
+              '<div class="detail-label">내 역할</div>' +
+              '<p class="detail-value">' + p.role + '</p>' +
+            '</div>' +
+            '<div class="detail-field">' +
+              '<div class="detail-label">확인된 결과</div>' +
+              '<p class="detail-value">' + p.result + '</p>' +
+            '</div>' +
+            '<a class="project-link" href="' + p.link + '">프로젝트 자료 보기</a>' +
+          '</div>' +
+        '</article>';
+    }).join('');
+
+    if(empty) empty.hidden = visible.length > 0;
+  }
+
+  // ============================================================
+  // 필터 버튼 클릭 시 동작
+  // ============================================================
+  function initProjectFilter(){
+    var filterRow = document.getElementById('projectFilter');
+    if(!filterRow) return;
+    filterRow.addEventListener('click', function(event){
+      var btn = event.target.closest('.filter-btn');
+      if(!btn) return;
+
+      currentFilter = btn.getAttribute('data-filter');
+      renderFilters();
+      renderProjects();
+    });
+  }
+
+  // ============================================================
+  // 카드 클릭 시 상세 정보 열기/닫기 (카드마다 독립적으로 동작)
+  // ============================================================
+  function initProjectToggle(){
+    var grid = document.getElementById('projectGrid');
+    if(!grid) return;
+    grid.addEventListener('click', function(event){
+      var trigger = event.target.closest('.project-toggle');
+      if(!trigger) return;
+
+      var card = trigger.closest('.project-card');
+      var isOpen = card.classList.toggle('is-open');
+
+      trigger.setAttribute('aria-expanded', String(isOpen));
+      trigger.textContent = isOpen ? '접기' : '자세히 보기';
+    });
+  }
+
+  // ============================================================
+  // 백엔드에서 프로젝트 데이터 가져오기
+  // 성공하면 PROJECTS를 API 응답으로 교체하고, 실패(서버 꺼짐/CORS/네트워크 오류)하면
+  // 위의 FALLBACK_PROJECTS를 그대로 사용합니다. 어느 쪽이든 마지막에 화면을 그립니다.
+  // ============================================================
+  function loadProjects(){
+    fetch(API_BASE_URL, { cache: 'no-store' })
+      .then(function(res){
+        if(!res.ok) throw new Error('API 응답 오류: ' + res.status);
+        return res.json();
+      })
+      .then(function(data){
+        if(Array.isArray(data) && data.length > 0){
+          PROJECTS = data;
+        }
+      })
+      .catch(function(err){
+        // 백엔드 서버가 없거나(정적 파일로만 열람 중) 응답하지 않으면 기본 데이터를 그대로 사용
+        console.info('백엔드 미연결 상태 - 기본 프로젝트 데이터를 사용합니다.', err.message);
+      })
+      .finally(function(){
+        renderFilters();
+        renderProjects();
+      });
+  }
+
+  initProjectFilter();
+  initProjectToggle();
+  loadProjects();
+
   (function(){
     var links = Array.prototype.slice.call(document.querySelectorAll('.zonenav a'));
     var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);

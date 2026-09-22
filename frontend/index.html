@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>임성아 포트폴리오</title>
+  <style>
+    :root {
+      --bg: #f5f6f1;
+      --surface: #ffffff;
+      --surface-soft: #eef2ea;
+      --line: #dfe6d8;
+      --line-strong: #c9d2c1;
+      --text: #1f2b25;
+      --muted: #53615a;
+      --accent: #1f6a4b;
+      --accent-soft: rgba(31, 106, 75, 0.08);
+      --shadow: 0 14px 28px rgba(27, 39, 33, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    h1, h2, h3, p { margin: 0; }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(245, 246, 241, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .nav a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .nav a:hover,
+    .nav a:focus-visible {
+      background: var(--surface-soft);
+      color: var(--accent);
+      outline: none;
+    }
+
+    .hero {
+      padding: 64px 0 48px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-top: 18px;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .role {
+      margin-top: 16px;
+      max-width: 700px;
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+
+    .tag-row {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 7px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .info-card {
+      margin-top: 32px;
+      max-width: 460px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .info-card-head {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .info-card dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 110px 1fr;
+    }
+
+    .info-card dt,
+    .info-card dd {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .info-card dt {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--surface-soft);
+    }
+
+    .info-card dd {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.7rem, 2vw, 2.3rem);
+      margin-bottom: 18px;
+    }
+
+    .section-hint {
+      margin: -8px 0 18px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .section-body {
+      max-width: 760px;
+    }
+
+    .plain-box {
+      padding: 20px 22px;
+      border: 1px dashed var(--accent);
+      border-radius: 12px;
+      background: rgba(31, 106, 75, 0.03);
+      color: var(--muted);
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .tag-list .tag {
+      border-style: dashed;
+      background: rgba(31, 106, 75, 0.03);
+      color: var(--muted);
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .project-card {
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .project-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: 18px 18px 14px;
+      cursor: pointer;
+    }
+
+    .project-tag {
+      display: inline-block;
+      padding: 6px 10px;
+      background: var(--accent-soft);
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .project-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+
+    .project-header h3 {
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .toggle-sign {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-soft);
+      color: var(--accent);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .project-toggle p {
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .project-detail {
+      display: none;
+      border-top: 1px solid var(--line);
+      padding: 18px;
+      background: rgba(31, 106, 75, 0.02);
+    }
+
+    .project-card.is-open .project-detail {
+      display: block;
+    }
+
+    .project-detail dl {
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .project-detail div {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .project-detail dt {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .project-detail dd {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .info-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+
+    .info-title {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .info-row p {
+      color: var(--muted);
+    }
+
+    .compact .info-row {
+      grid-template-columns: 200px minmax(0, 1fr);
+    }
+
+    .footer {
+      padding: 32px 0 52px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .info-card dl,
+      .info-row,
+      .project-detail div {
+        grid-template-columns: 1fr;
+      }
+
+      .info-row {
+        gap: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">임성아 포트폴리오</div>
+      <nav class="nav" aria-label="메인 메뉴">
+        <a href="#intro">소개</a>
+        <a href="#education">전공</a>
+        <a href="#skills">역량</a>
+        <a href="#projects">프로젝트</a>
+        <a href="#coursework">수강과목</a>
+        <a href="#certs">자격증</a>
+        <a href="#plans">계획</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="eyebrow">Portfolio</span>
+        <h1>임성아</h1>
+        <p class="role">상명대학교 그린스마트시티학과에서 도시와 기술, 환경을 연결하는 문제 해결 방식을 학습하고 있습니다. 데이터를 기반으로 현실적인 도시 문제를 이해하고, 실질적인 해결 아이디어를 탐구하는 학생입니다.</p>
+
+        <div class="tag-row">
+          <span class="tag">SANGMYUNG UNIVERSITY</span>
+          <span class="tag">DEPT. OF GREEN SMART CITY</span>
+          <span class="tag">STUDENT NO. 202421389</span>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-head">
+            <span>Title Block</span>
+            <span>Profile</span>
+          </div>
+          <dl>
+            <dt>Name</dt><dd>임성아</dd>
+            <dt>Dept.</dt><dd>그린스마트시티학과</dd>
+            <dt>University</dt><dd>상명대학교</dd>
+            <dt>Student No.</dt><dd>202421389</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="intro">
+      <div class="wrap">
+        <h2>01. 자기소개</h2>
+        <div class="section-body plain-box">
+          저는 도시 문제를 데이터와 기술로 이해하고 해결하는 방식에 관심이 많은 학생입니다. 그린스마트시티학과에서 도시 인프라, 공간정보, 환경, 토지정보와 같은 영역을 학습하면서, 현장의 문제를 분석하고 실질적인 개선 방향을 제시하는 능력을 키우고 있습니다. 단순히 지식을 배우는 것을 넘어, 실제 데이터를 기반으로 문제를 정의하고 해석하는 과정을 중요하게 생각합니다.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="education">
+      <div class="wrap">
+        <h2>02. 전공 소개</h2>
+        <div class="section-body plain-box">
+          상명대학교 그린스마트시티학과에서 스마트시티, 공간정보, 도시 인프라, 환경 문제에 대해 학습하고 있습니다. 전공을 통해 도시와 기술이 어떻게 연결되는지를 이해하고, 데이터와 공간 정보를 활용해 현실적인 문제를 분석하는 역량을 쌓아가고 있습니다. 특히 스마트 인프라와 도시문제 해결에 관심을 두고 있으며, 이를 위해 관련 데이터를 기반으로 문제를 정의하고 해석하는 과정을 꾸준히 연습하고 있습니다.
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="skills">
+      <div class="wrap">
+        <h2>03. 보유 역량</h2>
+        <div class="tag-list">
+          <span class="tag">기초 데이터 분석</span>
+          <span class="tag">GIS/공간정보 이해</span>
+          <span class="tag">문서 정리 능력</span>
+          <span class="tag">발표 및 협업</span>
+          <span class="tag">문제 정의 및 해결</span>
+          <span class="tag">토지정보 활용</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="projects">
+      <div class="wrap">
+        <h2>04. 프로젝트</h2>
+        <p class="section-hint">카드를 클릭하면 상세 정보가 열립니다.</p>
+        <!-- 카드는 아래 스크립트의 PROJECTS 데이터로 자동 생성됩니다. -->
+        <!-- 실제 프로젝트가 정해지면 PROJECTS 배열의 값만 바꾸면 됩니다 (마크업 수정 불필요). -->
+        <div class="project-grid" id="projectGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="coursework">
+      <div class="wrap">
+        <h2>05. 수강 과목</h2>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-title">과목명</span>
+            <p>이 과목을 통해 데이터 기반 사고와 공간 정보를 이해하는 기초를 다졌습니다.</p>
+          </div>
+          <div class="info-row">
+            <span class="info-title">과목명</span>
+            <p>이 과목을 통해 문제를 정의하고 논리적으로 정리하는 능력을 키웠습니다.</p>
+          </div>
+          <div class="info-row">
+            <span class="info-title">과목명</span>
+            <p>이 과목을 통해 도시와 인프라, 환경 문제를 종합적으로 이해하는 기반을 쌓았습니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="certs">
+      <div class="wrap">
+        <h2>06. 자격증 및 수상 경력</h2>
+        <div class="info-list compact">
+          <div class="info-row">
+            <span class="info-title">자격증 또는 수상</span>
+            <p>취득일과 내용을 입력해 주세요.</p>
+          </div>
+          <div class="info-row">
+            <span class="info-title">자격증 또는 수상</span>
+            <p>취득일과 내용을 입력해 주세요.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="plans">
+      <div class="wrap">
+        <h2>07. 향후 계획</h2>
+        <div class="section-body plain-box">
+          졸업 후에는 도시문제 해결과 데이터 기반 의사결정에 관심을 두고, 관련 분야에서 실무 역량을 쌓고자 합니다. 스마트시티와 공간정보를 활용한 문제 해결에 기여할 수 있는 직무를 탐색하며, 지속적으로 학습과 프로젝트 경험을 쌓아가고자 합니다.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <p>© 2026 임성아 · 상명대학교 그린스마트시티학과</p>
+  </footer>
+
+  <script>
+    // ============================================================
+    // 프로젝트 데이터
+    // 실제 프로젝트가 정해지면 이 배열의 값만 채우면 카드가 자동으로 생성됩니다.
+    // (아직 사용자에게 확인받지 않은 예시 값이므로, 실제 내용으로 반드시 교체해야 합니다.)
+    // ============================================================
+    const PROJECTS = [
+      {
+        tag: '분야를 입력하세요',
+        title: '프로젝트명을 입력하세요',
+        summary: '한두 문장으로 프로젝트를 소개하는 요약을 입력하세요.',
+        period: '예시 기간',
+        role: '예시 역할',
+        description: '문제 정의, 데이터 수집, 분석 과정, 결과 정리를 간단하게 작성하세요.',
+        data: '토지정보, 공간정보, 공공데이터 등'
+      }
+      // 프로젝트를 추가하려면 위와 같은 형식으로 객체를 하나 더 넣으면 됩니다.
+    ];
+
+    // ============================================================
+    // 프로젝트 카드 렌더링 (PROJECTS 배열 → HTML)
+    // ============================================================
+    function renderProjects() {
+      const grid = document.getElementById('projectGrid');
+      grid.innerHTML = PROJECTS.map((p) => `
+        <article class="project-card">
+          <button class="project-toggle" type="button" aria-expanded="false">
+            <span class="project-tag">${p.tag}</span>
+            <div class="project-header">
+              <h3>${p.title}</h3>
+              <span class="toggle-sign">＋</span>
+            </div>
+            <p>${p.summary}</p>
+          </button>
+          <div class="project-detail">
+            <dl>
+              <div><dt>기간</dt><dd>${p.period}</dd></div>
+              <div><dt>역할</dt><dd>${p.role}</dd></div>
+              <div><dt>내용</dt><dd>${p.description}</dd></div>
+              <div><dt>데이터</dt><dd>${p.data}</dd></div>
+            </dl>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // ============================================================
+    // 카드 클릭 시 상세 정보 열기/닫기 (카드마다 독립적으로 동작)
+    // ============================================================
+    function initProjectToggle() {
+      const grid = document.getElementById('projectGrid');
+      grid.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.project-toggle');
+        if (!trigger) return;
+
+        const card = trigger.closest('.project-card');
+        const sign = trigger.querySelector('.toggle-sign');
+        const isOpen = card.classList.toggle('is-open');
+
+        trigger.setAttribute('aria-expanded', String(isOpen));
+        sign.textContent = isOpen ? '−' : '＋';
+      });
+    }
+
+    renderProjects();
+    initProjectToggle();
+  </script>
+</body>
+</html>
