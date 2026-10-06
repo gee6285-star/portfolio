@@ -199,6 +199,9 @@
     </div>
 
     <!-- 동의 + 예약하기 -->
+    <!-- 스팸 봇 방지용 숨김 칸 (사람은 볼 수 없고, 채워지면 Formspree가 스팸으로 처리) -->
+    <input type="text" id="spam-trap" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+
     <div class="submit-area">
       <label class="consent-row">
         <input type="checkbox" id="consent-checkbox">
@@ -239,7 +242,10 @@
     purposeMaxLength: 1000,
     // 공휴일 정보 출처 (API 키 없이 쓸 수 있는 공개 서비스)
     holidayApi: function (year) { return 'https://date.nager.at/api/v3/PublicHolidays/' + year + '/KR'; },
-    submitApi: function () { return window.API_BASE + '/reservations'; }
+    // 예약 내용을 이메일로 전달해 주는 Formspree 폼 주소.
+    // (받는 이메일 주소는 코드가 아니라 Formspree 대시보드의 폼 설정에서 지정합니다)
+    formEndpoint: 'https://formspree.io/f/xzedzzen',
+    emailSubject: '[포트폴리오] 방문 예약 요청'
   };
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -267,6 +273,7 @@
     name: $('visitor-name'), email: $('visitor-email'), purpose: $('visit-purpose'),
     nameError: $('visitor-name-error'), emailError: $('visitor-email-error'), purposeError: $('visit-purpose-error'),
     purposeCount: $('visit-purpose-count'),
+    spamTrap: $('spam-trap'),
     consent: $('consent-checkbox'), submit: $('submit-button'), help: $('submit-help'),
     dialog: $('review-dialog'), reviewList: $('review-list'), reviewError: $('review-error'),
     reviewEdit: $('review-edit-button'), reviewConfirm: $('review-confirm-button'), reviewContent: $('review-content')
@@ -502,22 +509,36 @@
     el.reviewEdit.disabled = true;
     el.reviewError.hidden = true;
 
-    fetch(RESERVATION_CONFIG.submitApi(), {
+    // Formspree로 전송 -> 설정된 이메일로 예약 내용이 전달됩니다.
+    // "email" 칸은 Formspree가 답장 주소(reply-to)로 자동 인식합니다.
+    fetch(RESERVATION_CONFIG.formEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: v.name, email: v.email, purpose: v.purpose, date: v.date, time: v.time, consent: true })
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: RESERVATION_CONFIG.emailSubject,
+        name: v.name,
+        email: v.email,
+        date: formatKoreanDate(v.date),
+        time: v.time,
+        purpose: v.purpose,
+        consent: '동의함 (예약 상담 목적으로 운영자에게 전달)',
+        _gotcha: el.spamTrap.value
+      })
     })
       .then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (body) {
-          if (!res.ok) throw new Error(body.message || '예약을 접수하지 못했습니다.');
+          if (!res.ok) {
+            var detail = body.errors && body.errors.map(function (e) { return e.message; }).join(' ');
+            throw new Error(detail || body.error || '예약을 접수하지 못했습니다.');
+          }
           return body;
         });
       })
       .then(function () { showSuccess(); })
       .catch(function (err) {
-        // 서버에 아예 닿지 못한 경우(TypeError)와 서버가 거절한 경우를 구분해서 안내
+        // 인터넷/서버에 아예 닿지 못한 경우(TypeError)와 Formspree가 거절한 경우를 구분해서 안내
         el.reviewError.textContent = err instanceof TypeError
-          ? '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+          ? '전송하지 못했습니다. 인터넷 연결을 확인하고 잠시 후 다시 시도해 주세요.'
           : err.message;
         el.reviewError.hidden = false;
         el.reviewConfirm.disabled = false;
