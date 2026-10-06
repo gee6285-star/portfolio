@@ -170,6 +170,7 @@
           <select id="visit-time" name="time" required>
             <option value="">시간을 선택해 주세요</option>
           </select>
+          <p class="field-hint" id="booked-hint" style="text-align:left;" hidden>예약 현황을 불러오지 못했습니다. 이미 예약된 시간을 고르면 예약 단계에서 안내해 드립니다.</p>
         </div>
       </section>
 
@@ -247,7 +248,10 @@
     formEndpoint: 'https://formspree.io/f/xzedzzen',
     emailSubject: '[포트폴리오] 방문 예약 요청',
     // 관리자 화면 목록용 저장 주소 (config.js의 API_BASE 사용)
-    adminListApi: function () { return window.API_BASE + '/reservations'; }
+    adminListApi: function () { return window.API_BASE + '/reservations'; },
+    // 이미 예약이 찬 날짜/시간 조회 (개인정보 없음)
+    bookedApi: function () { return window.API_BASE + '/reservations/booked'; },
+    bookedLabel: '(완료)'
   };
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -258,6 +262,8 @@
     viewYear: 0,
     viewMonth: 0,           // 0~11
     selectedDate: '',       // 'YYYY-MM-DD'
+    bookedSlots: {},        // 이미 예약된 시간 { '2026-10-14': { '13:00': true } }
+    bookedLoadFailed: false,
     holidays: {},           // { 'YYYY-MM-DD': '설날' }
     loadedHolidayYears: {}, // { 2026: true }
     holidayLoadFailed: false,
@@ -396,21 +402,57 @@
       el.selectedValue.className = 'selected-date-value is-empty';
     }
     renderCalendar();
+    renderTimeOptions();
     updateSubmitState();
   }
 
   // ---------- 희망 시간 선택지 (13:00 ~ 18:00, 30분 단위) ----------
-  function buildTimeOptions() {
+  // 선택한 날짜에 이미 예약된 시간은 "13:00 (완료)"로 표시하고 선택하지 못하게 막습니다.
+  function isTimeBooked(dateString, time) {
+    return !!(state.bookedSlots[dateString] && state.bookedSlots[dateString][time]);
+  }
+
+  function renderTimeOptions() {
     function toMinutes(hhmm) { var p = hhmm.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+    var previous = el.time.value;
     var start = toMinutes(RESERVATION_CONFIG.timeStart);
     var end = toMinutes(RESERVATION_CONFIG.timeEnd);
+
+    el.time.textContent = '';
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '시간을 선택해 주세요';
+    el.time.appendChild(placeholder);
+
     for (var t = start; t <= end; t += RESERVATION_CONFIG.timeStepMinutes) {
       var text = pad(Math.floor(t / 60)) + ':' + pad(t % 60);
+      var booked = !!state.selectedDate && isTimeBooked(state.selectedDate, text);
       var option = document.createElement('option');
       option.value = text;
-      option.textContent = text;
+      option.textContent = booked ? text + ' ' + RESERVATION_CONFIG.bookedLabel : text;
+      option.disabled = booked;
       el.time.appendChild(option);
     }
+    // 이전에 골라 둔 시간이 지금도 가능하면 유지, 예약이 찼으면 선택 해제
+    el.time.value = previous;
+    if (el.time.value !== previous || el.time.selectedOptions[0].disabled) el.time.value = '';
+    document.getElementById('booked-hint').hidden = !state.bookedLoadFailed;
+  }
+
+  // 서버에서 이미 예약된 날짜/시간 목록을 받아옵니다.
+  function loadBookedSlots() {
+    return fetch(RESERVATION_CONFIG.bookedApi(), { cache: 'no-store' })
+      .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
+      .then(function (list) {
+        var map = {};
+        list.forEach(function (slot) {
+          (map[slot.date] = map[slot.date] || {})[slot.time] = true;
+        });
+        state.bookedSlots = map;
+        state.bookedLoadFailed = false;
+      })
+      .catch(function () { state.bookedLoadFailed = true; })
+      .then(function () { renderTimeOptions(); updateSubmitState(); });
   }
 
   // ---------- 입력 검사 ----------
@@ -504,27 +546,29 @@
     el.reviewContent.appendChild(box);
   }
 
-  // 관리자 화면(예약하기 관리)의 목록에 쌓기 위해 백엔드에도 저장합니다.
-  // 이메일 전달(Formspree)이 이미 성공한 뒤라서, 여기서 실패해도 방문자에게는 알리지 않습니다.
-  function saveToAdminList(v) {
-    fetch(RESERVATION_CONFIG.adminListApi(), {
+  // 1단계: 서버에 예약을 저장해서 날짜/시간 자리를 확보합니다 (관리자 "예약하기 관리" 목록에도 쌓임).
+  // 같은 시간에 이미 예약이 있으면 서버가 409로 거절합니다 -> 이메일도 보내지 않습니다.
+  function reserveSlot(v) {
+    return fetch(RESERVATION_CONFIG.adminListApi(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      keepalive: true,
       body: JSON.stringify({ name: v.name, email: v.email, purpose: v.purpose, date: v.date, time: v.time, consent: true })
-    }).catch(function () { /* 조용히 무시 (이메일은 이미 전달됨) */ });
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (!res.ok) {
+          var err = new Error(body.message || '예약을 접수하지 못했습니다.');
+          err.slotTaken = res.status === 409;
+          throw err;
+        }
+        return body;
+      });
+    });
   }
 
-  function submitReservation() {
-    var v = getValues();
-    state.submitting = true;
-    el.reviewConfirm.disabled = true;
-    el.reviewEdit.disabled = true;
-    el.reviewError.hidden = true;
-
-    // Formspree로 전송 -> 설정된 이메일로 예약 내용이 전달됩니다.
-    // "email" 칸은 Formspree가 답장 주소(reply-to)로 자동 인식합니다.
-    fetch(RESERVATION_CONFIG.formEndpoint, {
+  // 2단계: 예약 내용을 이메일로 전달합니다 (Formspree).
+  // "email" 칸은 Formspree가 답장 주소(reply-to)로 자동 인식합니다.
+  function sendEmail(v) {
+    return fetch(RESERVATION_CONFIG.formEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
@@ -537,25 +581,33 @@
         consent: '동의함 (예약 상담 목적으로 운영자에게 전달)',
         _gotcha: el.spamTrap.value
       })
-    })
-      .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (body) {
-          if (!res.ok) {
-            var detail = body.errors && body.errors.map(function (e) { return e.message; }).join(' ');
-            throw new Error(detail || body.error || '예약을 접수하지 못했습니다.');
-          }
-          return body;
-        });
-      })
+    }).then(function (res) { if (!res.ok) throw new Error('email ' + res.status); });
+  }
+
+  function submitReservation() {
+    var v = getValues();
+    state.submitting = true;
+    el.reviewConfirm.disabled = true;
+    el.reviewEdit.disabled = true;
+    el.reviewError.hidden = true;
+
+    reserveSlot(v)
       .then(function () {
-        saveToAdminList(v); // 이메일 전달이 성공한 뒤, 관리자 화면 목록용으로도 저장
-        showSuccess();
+        // 자리가 확보된 뒤에는 예약이 성립한 것입니다. 이메일 전달이 실패해도 예약은 관리자 목록에
+        // 남아 있으므로 방문자에게는 성공으로 안내합니다 (다시 시도하면 자기 자리가 "완료"로 보여 막힘).
+        return sendEmail(v).catch(function () { /* 관리자 목록에는 저장됨 */ });
       })
+      .then(function () { showSuccess(); })
       .catch(function (err) {
-        // 인터넷/서버에 아예 닿지 못한 경우(TypeError)와 Formspree가 거절한 경우를 구분해서 안내
-        el.reviewError.textContent = err instanceof TypeError
-          ? '전송하지 못했습니다. 인터넷 연결을 확인하고 잠시 후 다시 시도해 주세요.'
-          : err.message;
+        if (err.slotTaken) {
+          // 그 사이 다른 사람이 같은 시간을 예약한 경우: 최신 예약 현황을 다시 받아 "(완료)"로 반영
+          el.reviewError.textContent = err.message + ' "수정하기"를 눌러 다른 시간을 선택해 주세요.';
+          loadBookedSlots();
+        } else {
+          el.reviewError.textContent = err instanceof TypeError
+            ? '예약 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요. (서버가 잠들어 있었다면 첫 요청이 느릴 수 있습니다)'
+            : err.message;
+        }
         el.reviewError.hidden = false;
         el.reviewConfirm.disabled = false;
         el.reviewEdit.disabled = false;
@@ -592,7 +644,8 @@
   el.reviewConfirm.addEventListener('click', submitReservation);
 
   // ---------- 시작 ----------
-  buildTimeOptions();
+  renderTimeOptions();
+  loadBookedSlots();
   var now = new Date();
   showMonth(now.getFullYear(), now.getMonth());
   updateSubmitState();

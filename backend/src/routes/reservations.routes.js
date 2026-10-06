@@ -4,11 +4,11 @@
 // ============================================================
 const express = require('express');
 const router = express.Router();
-const { validateReservation, createReservation } = require('../services/reservations.service');
+const { validateReservation, createReservation, getBookedSlots } = require('../services/reservations.service');
 
 // 스팸 방지용 간단한 제한: 같은 IP에서 1시간에 10건까지 (메모리 기반이라 재시작 시 초기화됨)
 const WINDOW_MS = 60 * 60 * 1000;
-const MAX_PER_WINDOW = 10;
+const MAX_PER_WINDOW = Number(process.env.RESERVATION_RATE_LIMIT) || 10; // 테스트 때만 환경변수로 조절
 const attempts = new Map();
 
 function rateLimit(req, res, next) {
@@ -21,6 +21,17 @@ function rateLimit(req, res, next) {
   attempts.set(req.ip, recent);
   next();
 }
+
+// GET /api/reservations/booked - 이미 예약이 찬 날짜/시간 목록 (예약 페이지에서 "(완료)" 표시용)
+// 개인정보 없이 { date, time }만 공개합니다.
+router.get('/booked', (req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json(getBookedSlots());
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.post('/', rateLimit, (req, res, next) => {
   try {

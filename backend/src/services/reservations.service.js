@@ -9,6 +9,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 처리 상태: 접수(신청 직후 기본값) / 확정(승인) / 변경 요청(다른 시간 제안) / 취소(방문 원치 않음)
 const STATUSES = ['접수', '확정', '변경 요청', '취소'];
 const DEFAULT_STATUS = STATUSES[0];
+// 같은 날짜+시간에 하나만 예약 가능. "취소"된 예약은 자리를 차지하지 않습니다.
+// (접수/확정/변경 요청 상태는 그 시간을 차지한 것으로 봅니다)
+const SLOT_HOLDING_STATUSES = ['접수', '확정', '변경 요청'];
+const SLOT_TAKEN_MESSAGE = '이미 예약이 완료된 날짜/시간입니다. 다른 시간을 선택해 주세요.';
 const NAME_MAX = 50;
 const PURPOSE_MAX = 1000;
 
@@ -56,8 +60,31 @@ function validateReservation(body) {
   return errors;
 }
 
+function isSlotHeld(r) {
+  return SLOT_HOLDING_STATUSES.includes(r.status || DEFAULT_STATUS);
+}
+
+// 같은 날짜+시간을 이미 차지한 다른 예약이 있으면 돌려줍니다 (excludeId: 자기 자신은 제외)
+function findSlotConflict(list, date, time, excludeId) {
+  return list.find((r) => r.id !== excludeId && r.date === date && r.time === time && isSlotHeld(r));
+}
+
+function slotTakenError() {
+  const err = new Error(SLOT_TAKEN_MESSAGE);
+  err.status = 409;
+  return err;
+}
+
+// 예약 현황: 이미 차지된 날짜/시간만 돌려줍니다 (이름/이메일 등 개인정보는 절대 포함하지 않음)
+function getBookedSlots() {
+  return store.readAll().filter(isSlotHeld).map((r) => ({ date: r.date, time: r.time }));
+}
+
+// ※ 아래 함수들은 await 없이 "읽기 -> 중복 확인 -> 쓰기"가 한 번에 끝나므로(동기 방식),
+//   Node.js 서버 한 대에서는 두 요청이 동시에 와도 같은 시간이 중복 저장될 수 없습니다.
 function createReservation(body) {
   const list = store.readAll();
+  if (findSlotConflict(list, body.date, body.time, null)) throw slotTakenError();
   const reservation = {
     id: list.reduce((max, r) => Math.max(max, r.id), 0) + 1,
     name: String(body.name).trim(),
@@ -84,6 +111,12 @@ function updateReservationStatus(id, status) {
   const list = store.readAll();
   const target = list.find((r) => r.id === id);
   if (!target) return null;
+  // 취소 -> 다시 접수/확정 등으로 되돌릴 때, 그 사이 다른 사람이 같은 시간을 예약했다면 막습니다.
+  if (SLOT_HOLDING_STATUSES.includes(status) && findSlotConflict(list, target.date, target.time, target.id)) {
+    const err = new Error('같은 날짜/시간에 이미 다른 예약이 있어 이 상태로 바꿀 수 없습니다.');
+    err.status = 409;
+    throw err;
+  }
   target.status = status;
   target.statusUpdatedAt = new Date().toISOString();
   store.writeAll(list);
@@ -95,5 +128,6 @@ module.exports = {
   validateReservation,
   createReservation,
   getAllReservations,
+  getBookedSlots,
   updateReservationStatus
 };
