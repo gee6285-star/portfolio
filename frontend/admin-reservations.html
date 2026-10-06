@@ -56,8 +56,15 @@
 
   .section-title{ font-family:var(--font-display); font-size:18px; margin:0 0 6px; }
   .section-desc{ color:var(--ink-faint); font-size:13px; margin:0 0 14px; }
-  .summary{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-  .summary-item{ font-size:12.5px; padding:3px 11px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-soft); }
+  /* 요약 문장 + 상태 필터 */
+  .summary-text{ margin:0 0 12px; font-size:15px; font-weight:700; }
+  .summary-text .summary-part{ white-space:nowrap; }
+  .summary-text .summary-divider{ color:var(--line-strong); margin:0 6px; font-weight:400; }
+  .filter-bar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .filter-button{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); border-radius:999px; padding:6px 16px; font-size:13.5px; }
+  .filter-button:hover{ border-color:var(--accent); color:var(--accent); }
+  .filter-button.is-active{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700; }
+  .filter-button .filter-count{ opacity:.75; margin-left:4px; font-size:12px; }
 
   /* 테이블 */
   .table-wrap{ overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
@@ -112,7 +119,8 @@
   <section>
     <h2 class="section-title">방문 예약 요청</h2>
     <p class="section-desc">방문자가 예약 폼에서 신청한 목록입니다. 오른쪽 "관리" 버튼으로 처리 상태를 바꿀 수 있습니다.</p>
-    <div class="summary" id="summary"></div>
+    <p class="summary-text" id="summary" aria-live="polite"></p>
+    <div class="filter-bar" id="filterBar" role="group" aria-label="처리 상태 필터"></div>
 
     <div class="table-wrap">
       <table>
@@ -143,6 +151,8 @@
   //  취소      : 방문을 원치 않음
   var STATUSES = ['접수', '확정', '변경 요청', '취소'];
 
+  var FILTER_ALL = '전체'; // 필터 버튼 중 "모든 상태 보기"에 해당하는 이름
+
   var PURPOSE_CLAMP_LENGTH = 90; // 이 글자 수를 넘으면 "더 보기"로 접어서 표시
 
   var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -151,7 +161,9 @@
   var bodyEl = document.getElementById('reservationBody');
   var messageEl = document.getElementById('message');
   var summaryEl = document.getElementById('summary');
+  var filterBarEl = document.getElementById('filterBar');
   var reservations = [];
+  var currentFilter = FILTER_ALL; // 지금 선택된 필터 (전체 또는 처리 상태 중 하나)
 
   // ------------------------------------------------------------
   // 로그인 확인 - 이 페이지는 관리자 화면에서 "예약하기 관리" 탭을 눌러 들어올 때만 열립니다.
@@ -234,18 +246,49 @@
     });
   }
 
+  function countByStatus(status){
+    return reservations.filter(function(r){ return r.status === status; }).length;
+  }
+
+  // 요약 문장: "전체 N건 / 접수 N건 / 확정 N건 / 변경 요청 N건 / 취소 N건"
   function renderSummary(){
     summaryEl.textContent = '';
-    var total = document.createElement('span');
-    total.className = 'summary-item';
-    total.textContent = '전체 ' + reservations.length + '건';
-    summaryEl.appendChild(total);
-    STATUSES.forEach(function(status){
-      var count = reservations.filter(function(r){ return r.status === status; }).length;
-      var item = document.createElement('span');
-      item.className = 'summary-item';
-      item.textContent = status + ' ' + count;
-      summaryEl.appendChild(item);
+    var parts = [{ label: FILTER_ALL, count: reservations.length }].concat(
+      STATUSES.map(function(status){ return { label: status, count: countByStatus(status) }; })
+    );
+    parts.forEach(function(part, index){
+      if(index > 0){
+        var divider = document.createElement('span');
+        divider.className = 'summary-divider';
+        divider.textContent = '/';
+        summaryEl.appendChild(divider);
+      }
+      var span = document.createElement('span');
+      span.className = 'summary-part';
+      span.textContent = part.label + ' ' + part.count + '건';
+      summaryEl.appendChild(span);
+    });
+  }
+
+  // 필터 버튼: 전체 + 처리 상태 4개. 누르면 해당 상태의 예약만 표에 보입니다.
+  function renderFilterBar(){
+    filterBarEl.textContent = '';
+    [FILTER_ALL].concat(STATUSES).forEach(function(name){
+      var count = name === FILTER_ALL ? reservations.length : countByStatus(name);
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'filter-button' + (name === currentFilter ? ' is-active' : '');
+      button.setAttribute('aria-pressed', name === currentFilter ? 'true' : 'false');
+      button.textContent = name;
+      var badge = document.createElement('span');
+      badge.className = 'filter-count';
+      badge.textContent = count;
+      button.appendChild(badge);
+      button.addEventListener('click', function(){
+        currentFilter = name;
+        render();
+      });
+      filterBarEl.appendChild(button);
     });
   }
 
@@ -324,18 +367,24 @@
   function render(){
     renderHead();
     renderSummary();
+    renderFilterBar();
     bodyEl.textContent = '';
-    if(reservations.length === 0){
+    var visible = currentFilter === FILTER_ALL
+      ? reservations
+      : reservations.filter(function(r){ return r.status === currentFilter; });
+    if(visible.length === 0){
       var tr = document.createElement('tr');
       var td = document.createElement('td');
       td.colSpan = COLUMNS.length;
       td.className = 'empty-row';
-      td.textContent = '아직 들어온 예약 요청이 없습니다.';
+      td.textContent = reservations.length === 0
+        ? '아직 들어온 예약 요청이 없습니다.'
+        : '"' + currentFilter + '" 상태의 예약이 없습니다.';
       tr.appendChild(td);
       bodyEl.appendChild(tr);
       return;
     }
-    reservations.forEach(function(r){ bodyEl.appendChild(buildRow(r)); });
+    visible.forEach(function(r){ bodyEl.appendChild(buildRow(r)); });
   }
 
   // ------------------------------------------------------------
