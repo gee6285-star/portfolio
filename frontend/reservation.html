@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>방문 예약 · 임성아 포트폴리오</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@300;400;500;700;800&display=swap');
+
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f3; --surface:#ffffff; --surface-2:#eef1ea; --ink:#16211c; --ink-soft:#45524a; --ink-faint:#6b776e;
+    --accent:#1f6e4a; --accent-ink:#ffffff; --accent-soft:rgba(31,110,74,0.09);
+    --danger:#c0262d; --danger-soft:rgba(192,38,45,0.08);
+    --line:#d7ddd0; --line-strong:#b9c2b2; --shadow:0 18px 40px -22px rgba(22,33,28,0.35);
+    --font-display:'Gowun Batang','Nanum Myeongjo',serif;
+    --font-body:'Gothic A1','Apple SD Gothic Neo',sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1512; --surface:#141d19; --surface-2:#101815; --ink:#e9ede6; --ink-soft:#aab5a7; --ink-faint:#8a968c;
+      --accent:#59c48a; --accent-ink:#0e1512; --accent-soft:rgba(89,196,138,0.12);
+      --danger:#ff7b80; --danger-soft:rgba(255,123,128,0.1);
+      --line:#263029; --line-strong:#34413a; --shadow:0 18px 44px -22px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1512; --surface:#141d19; --surface-2:#101815; --ink:#e9ede6; --ink-soft:#aab5a7; --ink-faint:#8a968c;
+    --accent:#59c48a; --accent-ink:#0e1512; --accent-soft:rgba(89,196,138,0.12);
+    --danger:#ff7b80; --danger-soft:rgba(255,123,128,0.1);
+    --line:#263029; --line-strong:#34413a; --shadow:0 18px 44px -22px rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.7; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3{ font-family:var(--font-display); margin:0; }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 20px; }
+
+  /* 상단 바 */
+  .topbar{ border-bottom:1px solid var(--line); background:var(--surface); }
+  .topbar-inner{ max-width:960px; margin:0 auto; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .topbar a{ color:var(--ink-soft); text-decoration:none; font-size:14px; }
+  .topbar a:hover{ color:var(--accent); }
+  .brand{ font-weight:800; letter-spacing:.08em; font-size:13px; }
+
+  .page-head{ padding:40px 0 20px; }
+  .page-head .eyebrow{ color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.14em; }
+  .page-head h1{ font-size:clamp(28px,5vw,38px); margin-top:6px; }
+  .page-head p{ color:var(--ink-soft); margin:6px 0 0; font-size:15px; }
+
+  /* 2단 레이아웃: 왼쪽 캘린더 / 오른쪽 입력란 */
+  .reservation-layout{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px; align-items:start; }
+  .panel{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .panel-title{ font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--ink-soft); margin:0 0 12px; }
+
+  /* 캘린더 */
+  .calendar-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .calendar-month{ font-weight:800; font-size:17px; }
+  .calendar-nav{ width:34px; height:34px; border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); border-radius:8px; font-size:16px; cursor:pointer; }
+  .calendar-nav:disabled{ opacity:.35; cursor:not-allowed; }
+  .calendar-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .calendar-weekday{ text-align:center; font-size:12px; font-weight:700; color:var(--ink-faint); padding:4px 0; }
+  .calendar-day{
+    aspect-ratio:1/1; border:1px solid transparent; border-radius:8px; background:transparent;
+    color:var(--ink); font:inherit; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-direction:column; line-height:1.15;
+  }
+  .calendar-day:hover:not(:disabled){ background:var(--accent-soft); border-color:var(--accent); }
+  .calendar-day:disabled{ color:var(--ink-faint); opacity:.45; cursor:not-allowed; }
+  .calendar-day.is-holiday:disabled{ color:var(--danger); opacity:.8; }
+  .calendar-day.is-selected{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:800; }
+  .calendar-day.is-today{ border-color:var(--line-strong); }
+  .calendar-day small{ font-size:9.5px; font-weight:500; }
+  .calendar-empty{ aspect-ratio:1/1; }
+  .calendar-legend{ font-size:12px; color:var(--ink-faint); margin:10px 0 0; }
+  .calendar-warning{ font-size:12.5px; color:var(--danger); margin:8px 0 0; }
+
+  .selected-date-box{ margin-top:14px; }
+  .selected-date-value{ min-height:46px; display:flex; align-items:center; padding:10px 14px; border:1px dashed var(--line-strong); border-radius:10px; background:var(--surface-2); font-weight:700; }
+  .selected-date-value.is-filled{ border-style:solid; border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+  .selected-date-value.is-empty{ color:var(--ink-faint); font-weight:400; }
+
+  /* 입력란 */
+  .field{ margin-bottom:16px; }
+  .field label, .field .field-label{ display:block; font-size:14px; font-weight:700; margin-bottom:4px; }
+  .required-mark{ color:var(--danger); margin-left:2px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:11px 13px; border:1px solid var(--line-strong); border-radius:10px;
+    background:var(--bg); color:var(--ink); font:inherit; font-size:15px;
+  }
+  .field textarea{ min-height:170px; resize:vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .field [aria-invalid="true"]{ border-color:var(--danger); background:var(--danger-soft); }
+  .field [aria-invalid="true"]:focus{ outline-color:var(--danger); }
+  .field-error{ color:var(--danger); font-size:13px; margin:4px 0 0; min-height:0; }
+  .field-hint{ color:var(--ink-faint); font-size:12px; margin:4px 0 0; text-align:right; }
+
+  /* 동의 + 예약 버튼 */
+  .submit-area{ margin-top:20px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .consent-row{ display:flex; gap:10px; align-items:flex-start; font-size:14.5px; cursor:pointer; }
+  .consent-row input{ width:20px; height:20px; margin-top:3px; accent-color:var(--accent); flex-shrink:0; }
+  .submit-row{ margin-top:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .button{ border:0; border-radius:999px; padding:13px 38px; font:inherit; font-size:16px; font-weight:800; cursor:pointer; }
+  .button-primary{ background:var(--accent); color:var(--accent-ink); }
+  .button-primary:disabled{ background:var(--line-strong); color:var(--ink-faint); cursor:not-allowed; }
+  .button-secondary{ background:transparent; color:var(--ink); border:1px solid var(--line-strong); }
+  .button:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; }
+  .submit-help{ font-size:13px; color:var(--ink-faint); margin:0; }
+  .page-footer-space{ height:64px; }
+
+  /* 확인 팝업 */
+  dialog.review-dialog{ border:1px solid var(--line); border-radius:14px; padding:0; width:min(520px, calc(100% - 32px)); background:var(--surface); color:var(--ink); box-shadow:var(--shadow); }
+  dialog.review-dialog::backdrop{ background:rgba(0,0,0,.5); }
+  .dialog-body{ padding:22px 24px; }
+  .dialog-body h2{ font-size:22px; margin-bottom:4px; }
+  .dialog-lead{ color:var(--ink-soft); font-size:14px; margin:0 0 14px; }
+  .review-list{ margin:0; display:grid; grid-template-columns:90px 1fr; gap:8px 12px; font-size:15px; }
+  .review-list dt{ color:var(--ink-faint); font-weight:700; font-size:13px; padding-top:2px; }
+  .review-list dd{ margin:0; overflow-wrap:anywhere; white-space:pre-wrap; }
+  .dialog-error{ color:var(--danger); font-size:14px; margin:14px 0 0; }
+  .dialog-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .dialog-actions .button{ padding:11px 26px; font-size:15px; }
+  .success-box{ text-align:center; padding:12px 0 4px; }
+  .success-box p{ color:var(--ink-soft); }
+
+  @media (max-width:760px){
+    .reservation-layout{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand">LIM SEONG-A</span>
+    <nav>
+      <a href="./visit.html">← 찾아오는 길</a> &nbsp;·&nbsp; <a href="./portfolio_1.html">포트폴리오</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <div class="eyebrow">RESERVATION</div>
+    <h1>방문 예약</h1>
+    <p>희망하는 날짜와 시간을 고르고 정보를 입력해 주세요. 평일(공휴일 제외)만 선택할 수 있습니다.</p>
+  </div>
+
+  <form id="reservation-form" novalidate>
+    <div class="reservation-layout">
+
+      <!-- 왼쪽: 캘린더 + 선택한 날짜 + 희망 시간 -->
+      <section class="panel" aria-label="날짜와 시간 선택">
+        <h2 class="panel-title">1. 방문 날짜 <span class="required-mark">*</span></h2>
+        <div class="calendar-head">
+          <button type="button" class="calendar-nav" id="calendar-prev" aria-label="이전 달">◀</button>
+          <div class="calendar-month" id="calendar-month" aria-live="polite"></div>
+          <button type="button" class="calendar-nav" id="calendar-next" aria-label="다음 달">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+        <p class="calendar-legend">토·일, 공휴일, 지난 날짜와 오늘은 선택할 수 없습니다.</p>
+        <p class="calendar-warning" id="calendar-warning" hidden>공휴일 정보를 불러오지 못했습니다. 공휴일에는 예약이 취소될 수 있으니 날짜를 한 번 더 확인해 주세요.</p>
+
+        <div class="selected-date-box">
+          <div class="field-label" style="font-size:14px;font-weight:700;margin-bottom:4px;">선택한 날짜</div>
+          <div class="selected-date-value is-empty" id="selected-date-value">캘린더에서 날짜를 선택해 주세요</div>
+        </div>
+
+        <div class="field" style="margin-top:16px;margin-bottom:0;">
+          <label for="visit-time">희망 시간 <span class="required-mark">*</span></label>
+          <select id="visit-time" name="time" required>
+            <option value="">시간을 선택해 주세요</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- 오른쪽: 이름 / 이메일 / 방문 목적 -->
+      <section class="panel" aria-label="연락처와 방문 목적">
+        <h2 class="panel-title">2. 신청자 정보</h2>
+
+        <div class="field">
+          <label for="visitor-name">이름 <span class="required-mark">*</span></label>
+          <input type="text" id="visitor-name" name="name" maxlength="50" autocomplete="name" placeholder="예) 홍길동" aria-describedby="visitor-name-error">
+          <p class="field-error" id="visitor-name-error" role="alert"></p>
+        </div>
+
+        <div class="field">
+          <label for="visitor-email">답장받을 이메일 <span class="required-mark">*</span></label>
+          <input type="email" id="visitor-email" name="email" autocomplete="email" inputmode="email" placeholder="예) name@example.com" aria-describedby="visitor-email-error">
+          <p class="field-error" id="visitor-email-error" role="alert"></p>
+        </div>
+
+        <div class="field" style="margin-bottom:0;">
+          <label for="visit-purpose">방문 목적 <span class="required-mark">*</span></label>
+          <textarea id="visit-purpose" name="purpose" maxlength="1000" placeholder="방문하시려는 이유와 나누고 싶은 이야기를 자유롭게 적어 주세요." aria-describedby="visit-purpose-error"></textarea>
+          <p class="field-error" id="visit-purpose-error" role="alert"></p>
+          <p class="field-hint"><span id="visit-purpose-count">0</span> / 1000자</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- 동의 + 예약하기 -->
+    <div class="submit-area">
+      <label class="consent-row">
+        <input type="checkbox" id="consent-checkbox">
+        <span>입력 정보를 예약 상담 목적으로 운영자에게 전달하는 것에 동의합니다. <span class="required-mark">*</span></span>
+      </label>
+      <div class="submit-row">
+        <button type="submit" class="button button-primary" id="submit-button" disabled>예약하기</button>
+        <p class="submit-help" id="submit-help"></p>
+      </div>
+    </div>
+  </form>
+  <div class="page-footer-space"></div>
+</main>
+
+<!-- 최종 확인 팝업 -->
+<dialog class="review-dialog" id="review-dialog" aria-labelledby="review-title">
+  <div class="dialog-body" id="review-content">
+    <h2 id="review-title">예약 내용을 확인해 주세요</h2>
+    <p class="dialog-lead">아래 내용이 맞다면 "예약 확정"을 눌러 주세요.</p>
+    <dl class="review-list" id="review-list"></dl>
+    <p class="dialog-error" id="review-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button type="button" class="button button-secondary" id="review-edit-button">수정하기</button>
+      <button type="button" class="button button-primary" id="review-confirm-button">예약 확정</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="./config.js"></script>
+<script>
+  // ============================================================
+  // 설정값 (바꾸고 싶을 때는 여기만 수정하세요)
+  // ============================================================
+  var RESERVATION_CONFIG = {
+    timeStart: '13:00',          // 희망 시간 시작
+    timeEnd: '18:00',            // 희망 시간 끝 (이 시각도 포함)
+    timeStepMinutes: 30,         // 시간 간격
+    purposeMaxLength: 1000,
+    // 공휴일 정보 출처 (API 키 없이 쓸 수 있는 공개 서비스)
+    holidayApi: function (year) { return 'https://date.nager.at/api/v3/PublicHolidays/' + year + '/KR'; },
+    submitApi: function () { return window.API_BASE + '/reservations'; }
+  };
+
+  var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+  var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // ---------- 상태 ----------
+  var state = {
+    viewYear: 0,
+    viewMonth: 0,           // 0~11
+    selectedDate: '',       // 'YYYY-MM-DD'
+    holidays: {},           // { 'YYYY-MM-DD': '설날' }
+    loadedHolidayYears: {}, // { 2026: true }
+    holidayLoadFailed: false,
+    touched: { name: false, email: false, purpose: false },
+    submitting: false
+  };
+
+  // ---------- 요소 ----------
+  function $(id) { return document.getElementById(id); }
+  var el = {
+    form: $('reservation-form'),
+    grid: $('calendar-grid'), month: $('calendar-month'),
+    prev: $('calendar-prev'), next: $('calendar-next'), warning: $('calendar-warning'),
+    selectedValue: $('selected-date-value'), time: $('visit-time'),
+    name: $('visitor-name'), email: $('visitor-email'), purpose: $('visit-purpose'),
+    nameError: $('visitor-name-error'), emailError: $('visitor-email-error'), purposeError: $('visit-purpose-error'),
+    purposeCount: $('visit-purpose-count'),
+    consent: $('consent-checkbox'), submit: $('submit-button'), help: $('submit-help'),
+    dialog: $('review-dialog'), reviewList: $('review-list'), reviewError: $('review-error'),
+    reviewEdit: $('review-edit-button'), reviewConfirm: $('review-confirm-button'), reviewContent: $('review-content')
+  };
+
+  // ---------- 날짜 유틸 ----------
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function toDateString(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+  function todayString() {
+    var t = new Date();
+    return toDateString(t.getFullYear(), t.getMonth(), t.getDate());
+  }
+  function formatKoreanDate(dateString) {
+    var p = dateString.split('-').map(Number);
+    var weekday = WEEKDAY_LABELS[new Date(p[0], p[1] - 1, p[2]).getDay()];
+    return p[0] + '년 ' + p[1] + '월 ' + p[2] + '일 (' + weekday + ')';
+  }
+
+  // 선택 가능한 날짜인지: 내일 이후 + 평일 + 공휴일 아님
+  function isSelectable(dateString, weekday) {
+    if (dateString <= todayString()) return false;
+    if (weekday === 0 || weekday === 6) return false;
+    if (state.holidays[dateString]) return false;
+    return true;
+  }
+
+  // ---------- 공휴일 불러오기 ----------
+  function loadHolidays(year) {
+    if (state.loadedHolidayYears[year]) return Promise.resolve();
+    state.loadedHolidayYears[year] = true;
+    return fetch(RESERVATION_CONFIG.holidayApi(year))
+      .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
+      .then(function (list) {
+        list.forEach(function (h) { state.holidays[h.date] = h.localName; });
+      })
+      .catch(function () {
+        state.loadedHolidayYears[year] = false;
+        state.holidayLoadFailed = true;
+      });
+  }
+
+  // ---------- 캘린더 그리기 ----------
+  function renderCalendar() {
+    var y = state.viewYear, m = state.viewMonth;
+    el.month.textContent = y + '년 ' + (m + 1) + '월';
+    el.grid.textContent = '';
+
+    WEEKDAY_LABELS.forEach(function (label) {
+      var w = document.createElement('div');
+      w.className = 'calendar-weekday';
+      w.textContent = label;
+      el.grid.appendChild(w);
+    });
+
+    var firstWeekday = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    for (var i = 0; i < firstWeekday; i++) {
+      var blank = document.createElement('div');
+      blank.className = 'calendar-empty';
+      el.grid.appendChild(blank);
+    }
+
+    var today = todayString();
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateString = toDateString(y, m, d);
+      var weekday = new Date(y, m, d).getDay();
+      var holidayName = state.holidays[dateString];
+      var selectable = isSelectable(dateString, weekday);
+
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'calendar-day';
+      button.textContent = d;
+      button.disabled = !selectable;
+      button.dataset.date = dateString;
+      if (dateString === today) button.classList.add('is-today');
+      if (holidayName) {
+        button.classList.add('is-holiday');
+        var label = document.createElement('small');
+        label.textContent = holidayName;
+        button.appendChild(label);
+        button.title = holidayName + ' (공휴일)';
+      }
+      if (dateString === state.selectedDate) {
+        button.classList.add('is-selected');
+        button.setAttribute('aria-pressed', 'true');
+      }
+      el.grid.appendChild(button);
+    }
+
+    // 이번 달보다 이전 달로는 이동 불가
+    var now = new Date();
+    el.prev.disabled = (y === now.getFullYear() && m === now.getMonth()) || (y < now.getFullYear());
+    el.warning.hidden = !state.holidayLoadFailed;
+  }
+
+  function showMonth(year, month) {
+    state.viewYear = year;
+    state.viewMonth = month;
+    renderCalendar();
+    // 해당 연도의 공휴일을 아직 안 받았다면 받아온 뒤 다시 그립니다.
+    if (!state.loadedHolidayYears[year]) {
+      loadHolidays(year).then(function () {
+        if (state.viewYear === year) renderCalendar();
+        // 이미 골라 둔 날짜가 공휴일로 확인되면 선택 해제
+        if (state.selectedDate && state.holidays[state.selectedDate]) setSelectedDate('');
+      });
+    }
+  }
+
+  function setSelectedDate(dateString) {
+    state.selectedDate = dateString;
+    if (dateString) {
+      el.selectedValue.textContent = formatKoreanDate(dateString);
+      el.selectedValue.className = 'selected-date-value is-filled';
+    } else {
+      el.selectedValue.textContent = '캘린더에서 날짜를 선택해 주세요';
+      el.selectedValue.className = 'selected-date-value is-empty';
+    }
+    renderCalendar();
+    updateSubmitState();
+  }
+
+  // ---------- 희망 시간 선택지 (13:00 ~ 18:00, 30분 단위) ----------
+  function buildTimeOptions() {
+    function toMinutes(hhmm) { var p = hhmm.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+    var start = toMinutes(RESERVATION_CONFIG.timeStart);
+    var end = toMinutes(RESERVATION_CONFIG.timeEnd);
+    for (var t = start; t <= end; t += RESERVATION_CONFIG.timeStepMinutes) {
+      var text = pad(Math.floor(t / 60)) + ':' + pad(t % 60);
+      var option = document.createElement('option');
+      option.value = text;
+      option.textContent = text;
+      el.time.appendChild(option);
+    }
+  }
+
+  // ---------- 입력 검사 ----------
+  function getValues() {
+    return {
+      name: el.name.value.trim(),
+      email: el.email.value.trim(),
+      purpose: el.purpose.value.trim(),
+      date: state.selectedDate,
+      time: el.time.value
+    };
+  }
+
+  function emailMessage(value) {
+    if (!value) return '이메일을 입력해 주세요.';
+    if (!EMAIL_PATTERN.test(value)) return '이메일을 잘못 입력하셨습니다. @가 포함된 형식(예: name@example.com)으로 입력해 주세요.';
+    return '';
+  }
+
+  function showFieldError(input, errorEl, message) {
+    errorEl.textContent = message;
+    if (message) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+  }
+
+  // 한 번이라도 입력/이탈한 칸만 오류를 보여줍니다 (처음부터 빨갛게 보이지 않도록).
+  function renderFieldErrors() {
+    var v = getValues();
+    showFieldError(el.name, el.nameError, state.touched.name && !v.name ? '이름을 입력해 주세요.' : '');
+    showFieldError(el.email, el.emailError, state.touched.email ? emailMessage(v.email) : '');
+    showFieldError(el.purpose, el.purposeError, state.touched.purpose && !v.purpose ? '방문 목적을 입력해 주세요.' : '');
+  }
+
+  // 필수 항목이 모두 채워져 있는지 확인해서 예약하기 버튼을 켜고 끕니다.
+  function updateSubmitState() {
+    var v = getValues();
+    var missing = [];
+    if (!v.date) missing.push('방문 날짜');
+    if (!v.time) missing.push('희망 시간');
+    if (!v.name) missing.push('이름');
+    if (!v.email || emailMessage(v.email)) missing.push('이메일');
+    if (!v.purpose) missing.push('방문 목적');
+    if (!el.consent.checked) missing.push('정보 제공 동의');
+
+    el.submit.disabled = missing.length > 0 || state.submitting;
+    el.help.textContent = missing.length > 0 ? '입력이 필요한 항목: ' + missing.join(', ') : '';
+  }
+
+  function onInputChanged() {
+    el.purposeCount.textContent = el.purpose.value.length;
+    renderFieldErrors();
+    updateSubmitState();
+  }
+
+  // ---------- 확인 팝업 + 실제 예약 ----------
+  function fillReviewList(v) {
+    var rows = [
+      ['방문 날짜', formatKoreanDate(v.date)],
+      ['희망 시간', v.time],
+      ['이름', v.name],
+      ['이메일', v.email],
+      ['방문 목적', v.purpose]
+    ];
+    el.reviewList.textContent = '';
+    rows.forEach(function (row) {
+      var dt = document.createElement('dt'); dt.textContent = row[0];
+      var dd = document.createElement('dd'); dd.textContent = row[1];
+      el.reviewList.appendChild(dt); el.reviewList.appendChild(dd);
+    });
+  }
+
+  function openReview() {
+    el.reviewError.hidden = true;
+    el.reviewConfirm.disabled = false;
+    fillReviewList(getValues());
+    el.dialog.showModal();
+  }
+
+  function showSuccess() {
+    el.reviewContent.textContent = '';
+    var box = document.createElement('div');
+    box.className = 'success-box';
+    var title = document.createElement('h2'); title.textContent = '예약 요청이 접수되었습니다';
+    var text = document.createElement('p');
+    text.textContent = '입력하신 이메일로 확인 후 답장드리겠습니다. 감사합니다.';
+    var actions = document.createElement('div'); actions.className = 'dialog-actions'; actions.style.justifyContent = 'center';
+    var home = document.createElement('a'); home.href = './portfolio_1.html'; home.className = 'button button-primary'; home.style.textDecoration = 'none';
+    home.textContent = '포트폴리오로 돌아가기';
+    actions.appendChild(home);
+    box.appendChild(title); box.appendChild(text); box.appendChild(actions);
+    el.reviewContent.appendChild(box);
+  }
+
+  function submitReservation() {
+    var v = getValues();
+    state.submitting = true;
+    el.reviewConfirm.disabled = true;
+    el.reviewEdit.disabled = true;
+    el.reviewError.hidden = true;
+
+    fetch(RESERVATION_CONFIG.submitApi(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: v.name, email: v.email, purpose: v.purpose, date: v.date, time: v.time, consent: true })
+    })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          if (!res.ok) throw new Error(body.message || '예약을 접수하지 못했습니다.');
+          return body;
+        });
+      })
+      .then(function () { showSuccess(); })
+      .catch(function (err) {
+        // 서버에 아예 닿지 못한 경우(TypeError)와 서버가 거절한 경우를 구분해서 안내
+        el.reviewError.textContent = err instanceof TypeError
+          ? '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+          : err.message;
+        el.reviewError.hidden = false;
+        el.reviewConfirm.disabled = false;
+        el.reviewEdit.disabled = false;
+      })
+      .then(function () { state.submitting = false; });
+  }
+
+  // ---------- 이벤트 연결 ----------
+  el.grid.addEventListener('click', function (e) {
+    var btn = e.target.closest('.calendar-day');
+    if (btn && !btn.disabled) setSelectedDate(btn.dataset.date);
+  });
+  el.prev.addEventListener('click', function () {
+    var d = new Date(state.viewYear, state.viewMonth - 1, 1);
+    showMonth(d.getFullYear(), d.getMonth());
+  });
+  el.next.addEventListener('click', function () {
+    var d = new Date(state.viewYear, state.viewMonth + 1, 1);
+    showMonth(d.getFullYear(), d.getMonth());
+  });
+
+  [['name', el.name], ['email', el.email], ['purpose', el.purpose]].forEach(function (pair) {
+    pair[1].addEventListener('input', onInputChanged);
+    pair[1].addEventListener('blur', function () { state.touched[pair[0]] = true; renderFieldErrors(); });
+  });
+  el.time.addEventListener('change', updateSubmitState);
+  el.consent.addEventListener('change', updateSubmitState);
+
+  el.form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!el.submit.disabled) openReview();
+  });
+  el.reviewEdit.addEventListener('click', function () { el.dialog.close(); });
+  el.reviewConfirm.addEventListener('click', submitReservation);
+
+  // ---------- 시작 ----------
+  buildTimeOptions();
+  var now = new Date();
+  showMonth(now.getFullYear(), now.getMonth());
+  updateSubmitState();
+</script>
+</body>
+</html>

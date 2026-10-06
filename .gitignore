@@ -7,3 +7,6 @@ dev.out.log
 dev.err.log
 frontend.out.log
 frontend.err.log
+
+# 방문 예약 데이터 (이름/이메일 등 개인정보)
+backend/src/data/reservations.json

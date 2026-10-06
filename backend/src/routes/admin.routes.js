@@ -7,6 +7,7 @@ const router = express.Router();
 
 const { verifyPassword, issueToken } = require('../services/auth.service');
 const requireAdmin = require('../middleware/requireAdmin');
+const { getAllReservations } = require('../services/reservations.service');
 const { loginRateLimit, recordFailedAttempt, resetAttempts } = require('../middleware/loginRateLimit');
 const {
   getAllProjectsForAdmin,
@@ -66,6 +67,15 @@ router.get('/session', requireAdmin, (req, res) => {
 
 // ---- 아래 경로부터는 로그인 필요 ----
 router.use(requireAdmin);
+
+// 방문 예약 목록 (최신순)
+router.get('/reservations', (req, res, next) => {
+  try {
+    res.json(getAllReservations().slice().reverse());
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/admin/projects - 초안 포함 전체 목록
 router.get('/projects', async (req, res, next) => {
