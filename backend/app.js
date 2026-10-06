@@ -12,8 +12,12 @@ const cookieParser = require('cookie-parser');
 
 const projectsRouter = require('./src/routes/projects.routes');
 const adminRouter = require('./src/routes/admin.routes');
+const reservationsRouter = require('./src/routes/reservations.routes');
 
 const app = express();
+
+// Render 같은 프록시 뒤에서 실제 방문자 IP를 구분하기 위함 (예약 접수 횟수 제한에 사용)
+app.set('trust proxy', 1);
 
 // FRONTEND_ORIGIN은 쉼표(,)로 여러 개 적을 수 있습니다.
 // 예: https://portfolio-alpha-flax-0o25vvryhm.vercel.app,https://portfolio-portfolio-42ae.vercel.app
@@ -47,6 +51,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/projects', projectsRouter);
+app.use('/api/reservations', reservationsRouter);
 app.use('/api/admin', adminRouter);
 
 // 처리되지 않은 오류를 잡아서 500으로 응답 (서버가 죽지 않도록)
