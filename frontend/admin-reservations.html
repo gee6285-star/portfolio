@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>예약하기 관리 · 관리자</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f3; --surface:#ffffff; --surface-2:#eef1ea; --ink:#16211c; --ink-soft:#45524a; --ink-faint:#6b776e;
+    --accent:#1f6e4a; --accent-soft:rgba(31,110,74,0.12);
+    --warn:#a0640f; --warn-soft:rgba(160,100,15,0.14);
+    --danger:#b3402f; --danger-soft:rgba(179,64,47,0.12);
+    --info:#2c6ca6; --info-soft:rgba(44,108,166,0.12);
+    --line:#d7ddd0; --line-strong:#b9c2b2; --shadow:0 18px 40px -22px rgba(22,33,28,0.35);
+    --font-display:'Gowun Batang','Nanum Myeongjo',serif;
+    --font-body:'Gothic A1','Apple SD Gothic Neo',sans-serif;
+    --font-mono:'IBM Plex Mono','SFMono-Regular',monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1512; --surface:#141d19; --surface-2:#101815; --ink:#e9ede6; --ink-soft:#aab5a7; --ink-faint:#8a968c;
+      --accent:#59c48a; --accent-soft:rgba(89,196,138,0.15);
+      --warn:#e0a94c; --warn-soft:rgba(224,169,76,0.16);
+      --danger:#ff8a7a; --danger-soft:rgba(255,138,122,0.14);
+      --info:#74b3ea; --info-soft:rgba(116,179,234,0.15);
+      --line:#263029; --line-strong:#34413a; --shadow:0 18px 44px -22px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1512; --surface:#141d19; --surface-2:#101815; --ink:#e9ede6; --ink-soft:#aab5a7; --ink-faint:#8a968c;
+    --accent:#59c48a; --accent-soft:rgba(89,196,138,0.15);
+    --warn:#e0a94c; --warn-soft:rgba(224,169,76,0.16);
+    --danger:#ff8a7a; --danger-soft:rgba(255,138,122,0.14);
+    --info:#74b3ea; --info-soft:rgba(116,179,234,0.15);
+    --line:#263029; --line-strong:#34413a; --shadow:0 18px 44px -22px rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.6; }
+  button{ font-family:var(--font-body); cursor:pointer; }
+  .admin-shell{ max-width:1120px; margin:0 auto; padding:40px 20px 80px; }
+
+  /* 헤더 (프로젝트 관리자 화면과 같은 모양) */
+  .admin-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:28px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .admin-header h1{ font-family:var(--font-display); font-size:22px; margin:0; }
+  .admin-header .sub{ font-family:var(--font-mono); font-size:12px; color:var(--ink-faint); }
+  .header-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); border-radius:8px; padding:8px 16px; font-size:13.5px; text-decoration:none; display:inline-block; }
+  .btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .btn.is-current{ background:var(--accent); border-color:var(--accent); color:#fff; pointer-events:none; }
+  .btn-ghost{ border-color:transparent; background:transparent; }
+
+  .section-title{ font-family:var(--font-display); font-size:18px; margin:0 0 6px; }
+  .section-desc{ color:var(--ink-faint); font-size:13px; margin:0 0 14px; }
+  /* 요약 문장 + 상태 필터 */
+  .summary-text{ margin:0 0 12px; font-size:15px; font-weight:700; }
+  .summary-text .summary-part{ white-space:nowrap; }
+  .summary-text .summary-divider{ color:var(--line-strong); margin:0 6px; font-weight:400; }
+  .filter-bar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .filter-button{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); border-radius:999px; padding:6px 16px; font-size:13.5px; }
+  .filter-button:hover{ border-color:var(--accent); color:var(--accent); }
+  .filter-button.is-active{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700; }
+  .filter-button .filter-count{ opacity:.75; margin-left:4px; font-size:12px; }
+
+  /* 테이블 */
+  .table-wrap{ overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+  table{ width:100%; border-collapse:collapse; min-width:860px; }
+  th, td{ text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px; }
+  th{ background:var(--surface-2); font-size:12.5px; color:var(--ink-soft); white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:0; }
+  .col-number{ font-family:var(--font-mono); font-weight:500; white-space:nowrap; }
+  .applicant-name{ font-weight:700; }
+  .applicant-email{ color:var(--ink-soft); font-size:13px; word-break:break-all; }
+  .visit-date{ font-weight:700; white-space:nowrap; }
+  .visit-time{ color:var(--ink-soft); font-size:13px; }
+  .purpose{ max-width:300px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .purpose.is-clamped{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .purpose-toggle{ background:none; border:0; padding:0; margin-top:2px; color:var(--accent); font-size:12.5px; text-decoration:underline; }
+
+  /* 처리 상태 배지 */
+  .status-badge{ display:inline-block; padding:2px 11px; border-radius:999px; font-size:12.5px; font-weight:700; white-space:nowrap; }
+  .status-접수{ background:var(--info-soft); color:var(--info); }
+  .status-확정{ background:var(--accent-soft); color:var(--accent); }
+  .status-변경-요청{ background:var(--warn-soft); color:var(--warn); }
+  .status-취소{ background:var(--danger-soft); color:var(--danger); }
+
+  /* 관리 버튼 4개 */
+  .manage-buttons{ display:flex; gap:6px; flex-wrap:wrap; }
+  .manage-button{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); border-radius:8px; padding:5px 11px; font-size:12.5px; white-space:nowrap; }
+  .manage-button:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+  .manage-button.is-active{ background:var(--ink); border-color:var(--ink); color:var(--bg); font-weight:700; }
+  .manage-button:disabled{ cursor:default; }
+  .row-updating{ opacity:.55; pointer-events:none; }
+
+  .empty-row{ text-align:center; color:var(--ink-faint); padding:44px 14px; }
+  .message{ font-size:13.5px; margin:12px 0 0; min-height:1.2em; }
+  .message.err{ color:var(--danger); }
+</style>
+</head>
+<body>
+
+<div class="admin-shell" id="adminShell" hidden>
+  <div class="admin-header">
+    <div>
+      <h1>예약하기 관리</h1>
+      <div class="sub">임성아 포트폴리오 · 관리자 전용</div>
+    </div>
+    <div class="header-actions">
+      <a class="btn" id="projectsTab" href="./admin.html">프로젝트 관리</a>
+      <a class="btn is-current" href="./admin-reservations.html" aria-current="page">예약하기 관리</a>
+      <button type="button" class="btn" id="logoutBtn">로그아웃</button>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">방문 예약 요청</h2>
+    <p class="section-desc">방문자가 예약 폼에서 신청한 목록입니다. 오른쪽 "관리" 버튼으로 처리 상태를 바꿀 수 있습니다.</p>
+    <p class="summary-text" id="summary" aria-live="polite"></p>
+    <div class="filter-bar" id="filterBar" role="group" aria-label="처리 상태 필터"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr id="tableHeadRow"></tr>
+        </thead>
+        <tbody id="reservationBody"></tbody>
+      </table>
+    </div>
+    <div class="message" id="message" role="status"></div>
+  </section>
+</div>
+
+<script src="./config.js"></script>
+<script>
+  // ============================================================
+  // 설정 (표 열 이름, 처리 상태를 바꾸려면 여기만 수정하세요)
+  // ============================================================
+  var API_BASE = window.API_BASE;
+
+  // 표의 열 이름 (순서대로 표시됨)
+  var COLUMNS = ['예약번호', '신청자/이메일', '방문 희망 시간', '방문 목적', '처리 상태', '관리'];
+
+  // 처리 상태 4가지 (백엔드 STATUSES와 같은 값이어야 함)
+  //  접수      : 방문자가 신청한 그대로의 상태 (신규 예약의 기본값)
+  //  확정      : 해당 날짜/시간을 승인
+  //  변경 요청 : 미팅은 하고 싶지만 다른 시간을 요청
+  //  취소      : 방문을 원치 않음
+  var STATUSES = ['접수', '확정', '변경 요청', '취소'];
+
+  var FILTER_ALL = '전체'; // 필터 버튼 중 "모든 상태 보기"에 해당하는 이름
+
+  var PURPOSE_CLAMP_LENGTH = 90; // 이 글자 수를 넘으면 "더 보기"로 접어서 표시
+
+  var WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+
+  var adminShell = document.getElementById('adminShell');
+  var bodyEl = document.getElementById('reservationBody');
+  var messageEl = document.getElementById('message');
+  var summaryEl = document.getElementById('summary');
+  var filterBarEl = document.getElementById('filterBar');
+  var reservations = [];
+  var currentFilter = FILTER_ALL; // 지금 선택된 필터 (전체 또는 처리 상태 중 하나)
+
+  // ------------------------------------------------------------
+  // 로그인 확인 - 이 페이지는 관리자 화면에서 "예약하기 관리" 탭을 눌러 들어올 때만 열립니다.
+  // 주소를 직접 열거나 새 창으로 열면(1회용 표시 없음) 로그인 화면(admin.html)으로 보냅니다.
+  // (관리자 화면은 열 때마다 새로 로그인해야 한다는 기존 보안 규칙을 그대로 지킴)
+  // ------------------------------------------------------------
+  function goToLogin(){ location.replace('./admin.html'); }
+
+  function start(){
+    var allowed = false;
+    try {
+      allowed = sessionStorage.getItem('adminKeepLogin') === '1';
+      sessionStorage.removeItem('adminKeepLogin');
+    } catch(e){}
+    if(!allowed) return goToLogin();
+
+    fetch(API_BASE + '/admin/session', { credentials: 'include' })
+      .then(function(res){
+        if(!res.ok) throw new Error('no session');
+        adminShell.hidden = false;
+        loadReservations();
+      })
+      .catch(goToLogin);
+  }
+
+  document.getElementById('projectsTab').addEventListener('click', function(){
+    try { sessionStorage.setItem('adminKeepLogin', '1'); } catch(e){}
+  });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    fetch(API_BASE + '/admin/logout', { method: 'POST', credentials: 'include' }).finally(goToLogin);
+  });
+
+  // ------------------------------------------------------------
+  // 표시용 변환
+  // ------------------------------------------------------------
+  // 예약번호: 예약 한 건마다 하나씩 부여되는 고유 번호 (같은 사람이 여러 번 신청해도 번호는 각각 다름)
+  function formatReservationNumber(id){ return 'R-' + String(id).padStart(4, '0'); }
+
+  function formatVisitDate(dateString){
+    var p = dateString.split('-').map(Number);
+    var weekday = WEEKDAY_LABELS[new Date(p[0], p[1] - 1, p[2]).getDay()];
+    return p[0] + '.' + String(p[1]).padStart(2, '0') + '.' + String(p[2]).padStart(2, '0') + ' (' + weekday + ')';
+  }
+
+  function statusClass(status){ return 'status-' + status.replace(/\s+/g, '-'); }
+
+  // ------------------------------------------------------------
+  // 목록 불러오기 / 그리기
+  // ------------------------------------------------------------
+  function showMessage(text, isError){
+    messageEl.textContent = text || '';
+    messageEl.className = 'message' + (isError ? ' err' : '');
+  }
+
+  function loadReservations(){
+    fetch(API_BASE + '/admin/reservations', { credentials: 'include' })
+      .then(function(res){
+        if(res.status === 401) return goToLogin();
+        if(!res.ok) throw new Error('예약 목록을 불러오지 못했습니다.');
+        return res.json();
+      })
+      .then(function(list){
+        if(!list) return;
+        reservations = list;
+        render();
+      })
+      .catch(function(err){
+        showMessage(err instanceof TypeError ? '서버에 연결하지 못했습니다.' : err.message, true);
+        render();
+      });
+  }
+
+  function renderHead(){
+    var row = document.getElementById('tableHeadRow');
+    row.textContent = '';
+    COLUMNS.forEach(function(name){
+      var th = document.createElement('th');
+      th.textContent = name;
+      row.appendChild(th);
+    });
+  }
+
+  function countByStatus(status){
+    return reservations.filter(function(r){ return r.status === status; }).length;
+  }
+
+  // 요약 문장: "전체 N건 / 접수 N건 / 확정 N건 / 변경 요청 N건 / 취소 N건"
+  function renderSummary(){
+    summaryEl.textContent = '';
+    var parts = [{ label: FILTER_ALL, count: reservations.length }].concat(
+      STATUSES.map(function(status){ return { label: status, count: countByStatus(status) }; })
+    );
+    parts.forEach(function(part, index){
+      if(index > 0){
+        var divider = document.createElement('span');
+        divider.className = 'summary-divider';
+        divider.textContent = '/';
+        summaryEl.appendChild(divider);
+      }
+      var span = document.createElement('span');
+      span.className = 'summary-part';
+      span.textContent = part.label + ' ' + part.count + '건';
+      summaryEl.appendChild(span);
+    });
+  }
+
+  // 필터 버튼: 전체 + 처리 상태 4개. 누르면 해당 상태의 예약만 표에 보입니다.
+  function renderFilterBar(){
+    filterBarEl.textContent = '';
+    [FILTER_ALL].concat(STATUSES).forEach(function(name){
+      var count = name === FILTER_ALL ? reservations.length : countByStatus(name);
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'filter-button' + (name === currentFilter ? ' is-active' : '');
+      button.setAttribute('aria-pressed', name === currentFilter ? 'true' : 'false');
+      button.textContent = name;
+      var badge = document.createElement('span');
+      badge.className = 'filter-count';
+      badge.textContent = count;
+      button.appendChild(badge);
+      button.addEventListener('click', function(){
+        currentFilter = name;
+        render();
+      });
+      filterBarEl.appendChild(button);
+    });
+  }
+
+  function cell(){ return document.createElement('td'); }
+
+  function buildPurposeCell(purpose){
+    var td = cell();
+    var text = document.createElement('div');
+    text.className = 'purpose';
+    text.textContent = purpose;
+    td.appendChild(text);
+    if(purpose.length > PURPOSE_CLAMP_LENGTH){
+      text.classList.add('is-clamped');
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'purpose-toggle';
+      toggle.textContent = '더 보기';
+      toggle.addEventListener('click', function(){
+        var clamped = text.classList.toggle('is-clamped');
+        toggle.textContent = clamped ? '더 보기' : '접기';
+      });
+      td.appendChild(toggle);
+    }
+    return td;
+  }
+
+  function buildManageCell(reservation){
+    var td = cell();
+    var group = document.createElement('div');
+    group.className = 'manage-buttons';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', formatReservationNumber(reservation.id) + ' 처리 상태 변경');
+    STATUSES.forEach(function(status){
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'manage-button' + (reservation.status === status ? ' is-active' : '');
+      button.textContent = status;
+      button.disabled = reservation.status === status; // 이미 그 상태면 다시 누를 필요 없음
+      button.setAttribute('aria-pressed', reservation.status === status ? 'true' : 'false');
+      button.addEventListener('click', function(){ changeStatus(reservation.id, status); });
+      group.appendChild(button);
+    });
+    td.appendChild(group);
+    return td;
+  }
+
+  function buildRow(r){
+    var tr = document.createElement('tr');
+    tr.dataset.id = r.id;
+
+    var number = cell(); number.className = 'col-number';
+    number.textContent = formatReservationNumber(r.id);
+
+    var applicant = cell();
+    var name = document.createElement('div'); name.className = 'applicant-name'; name.textContent = r.name;
+    var email = document.createElement('div'); email.className = 'applicant-email'; email.textContent = r.email;
+    applicant.appendChild(name); applicant.appendChild(email);
+
+    var when = cell();
+    var date = document.createElement('div'); date.className = 'visit-date'; date.textContent = formatVisitDate(r.date);
+    var time = document.createElement('div'); time.className = 'visit-time'; time.textContent = r.time;
+    when.appendChild(date); when.appendChild(time);
+
+    var statusCell = cell();
+    var badge = document.createElement('span');
+    badge.className = 'status-badge ' + statusClass(r.status);
+    badge.textContent = r.status;
+    statusCell.appendChild(badge);
+
+    [number, applicant, when, buildPurposeCell(r.purpose), statusCell, buildManageCell(r)].forEach(function(td){
+      tr.appendChild(td);
+    });
+    return tr;
+  }
+
+  function render(){
+    renderHead();
+    renderSummary();
+    renderFilterBar();
+    bodyEl.textContent = '';
+    var visible = currentFilter === FILTER_ALL
+      ? reservations
+      : reservations.filter(function(r){ return r.status === currentFilter; });
+    if(visible.length === 0){
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = COLUMNS.length;
+      td.className = 'empty-row';
+      td.textContent = reservations.length === 0
+        ? '아직 들어온 예약 요청이 없습니다.'
+        : '"' + currentFilter + '" 상태의 예약이 없습니다.';
+      tr.appendChild(td);
+      bodyEl.appendChild(tr);
+      return;
+    }
+    visible.forEach(function(r){ bodyEl.appendChild(buildRow(r)); });
+  }
+
+  // ------------------------------------------------------------
+  // 처리 상태 변경
+  // ------------------------------------------------------------
+  function changeStatus(id, status){
+    var row = bodyEl.querySelector('tr[data-id="' + id + '"]');
+    if(row) row.classList.add('row-updating');
+    showMessage('');
+
+    fetch(API_BASE + '/admin/reservations/' + id + '/status', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ status: status })
+    })
+      .then(function(res){
+        if(res.status === 401) return goToLogin();
+        return res.json().then(function(body){
+          if(!res.ok) throw new Error(body.message || '상태를 바꾸지 못했습니다.');
+          return body;
+        });
+      })
+      .then(function(updated){
+        if(!updated) return;
+        reservations.forEach(function(r){ if(r.id === updated.id) r.status = updated.status; });
+        render();
+        showMessage(formatReservationNumber(updated.id) + ' 상태를 "' + updated.status + '"(으)로 바꿨습니다.');
+      })
+      .catch(function(err){
+        if(row) row.classList.remove('row-updating');
+        showMessage(err instanceof TypeError ? '서버에 연결하지 못했습니다.' : err.message, true);
+      });
+  }
+
+  start();
+</script>
+</body>
+</html>

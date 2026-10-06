@@ -200,6 +200,7 @@
       <div class="sub">임성아 포트폴리오 · 관리자 전용</div>
     </div>
     <div style="display:flex; gap:8px;">
+      <a class="btn" id="reservationsTab" href="./admin-reservations.html">예약하기 관리</a>
       <a class="btn btn-ghost" href="./portfolio_1.html" target="_blank" rel="noopener">공개 페이지 보기</a>
       <button type="button" class="btn" id="logoutBtn">로그아웃</button>
     </div>
@@ -618,7 +619,33 @@
       });
   });
 
-  forceFreshLogin();
+  // ------------------------------------------------------------
+  // 시작: 기본은 항상 새 로그인. 단, "예약하기 관리" 페이지에서 이 페이지로
+  // 탭을 눌러 넘어온 경우(같은 창, 1회용 표시)에만 로그인 상태를 이어받습니다.
+  // 새 창/새 탭으로 직접 열면 표시가 없으므로 기존처럼 항상 비밀번호를 다시 입력합니다.
+  // ------------------------------------------------------------
+  document.getElementById('reservationsTab').addEventListener('click', function(){
+    try { sessionStorage.setItem('adminKeepLogin', '1'); } catch(e){}
+  });
+
+  var keepLogin = false;
+  try {
+    keepLogin = sessionStorage.getItem('adminKeepLogin') === '1';
+    sessionStorage.removeItem('adminKeepLogin');
+  } catch(e){}
+
+  if(keepLogin){
+    fetch(API_BASE + '/admin/session', { credentials: 'include' })
+      .then(function(res){
+        if(!res.ok) throw new Error('no session');
+        showDashboard();
+        loadProjects();
+        loadDuplicates();
+      })
+      .catch(function(){ forceFreshLogin(); });
+  } else {
+    forceFreshLogin();
+  }
 </script>
 </body>
 </html>

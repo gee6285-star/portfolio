@@ -6,6 +6,9 @@
 const store = require('../data/reservationsStore');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// 처리 상태: 접수(신청 직후 기본값) / 확정(승인) / 변경 요청(다른 시간 제안) / 취소(방문 원치 않음)
+const STATUSES = ['접수', '확정', '변경 요청', '취소'];
+const DEFAULT_STATUS = STATUSES[0];
 const NAME_MAX = 50;
 const PURPOSE_MAX = 1000;
 
@@ -63,6 +66,7 @@ function createReservation(body) {
     date: body.date,
     time: body.time,
     consent: true,
+    status: DEFAULT_STATUS,
     createdAt: new Date().toISOString()
   };
   list.push(reservation);
@@ -70,8 +74,26 @@ function createReservation(body) {
   return reservation;
 }
 
+// 상태 값이 없는 예전 데이터도 "접수"로 보이게 채워서 돌려줍니다.
 function getAllReservations() {
-  return store.readAll();
+  return store.readAll().map((r) => ({ ...r, status: r.status || DEFAULT_STATUS }));
 }
 
-module.exports = { validateReservation, createReservation, getAllReservations };
+// 예약 1건의 처리 상태를 바꿉니다. 없는 예약이면 null.
+function updateReservationStatus(id, status) {
+  const list = store.readAll();
+  const target = list.find((r) => r.id === id);
+  if (!target) return null;
+  target.status = status;
+  target.statusUpdatedAt = new Date().toISOString();
+  store.writeAll(list);
+  return { ...target };
+}
+
+module.exports = {
+  STATUSES,
+  validateReservation,
+  createReservation,
+  getAllReservations,
+  updateReservationStatus
+};

@@ -7,7 +7,7 @@ const router = express.Router();
 
 const { verifyPassword, issueToken } = require('../services/auth.service');
 const requireAdmin = require('../middleware/requireAdmin');
-const { getAllReservations } = require('../services/reservations.service');
+const { STATUSES, getAllReservations, updateReservationStatus } = require('../services/reservations.service');
 const { loginRateLimit, recordFailedAttempt, resetAttempts } = require('../middleware/loginRateLimit');
 const {
   getAllProjectsForAdmin,
@@ -72,6 +72,21 @@ router.use(requireAdmin);
 router.get('/reservations', (req, res, next) => {
   try {
     res.json(getAllReservations().slice().reverse());
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 예약 처리 상태 변경: { "status": "접수" | "확정" | "변경 요청" | "취소" }
+router.patch('/reservations/:id/status', (req, res, next) => {
+  try {
+    const status = req.body && req.body.status;
+    if (!STATUSES.includes(status)) {
+      return res.status(400).json({ message: '처리 상태는 ' + STATUSES.join(', ') + ' 중 하나여야 합니다.' });
+    }
+    const updated = updateReservationStatus(Number(req.params.id), status);
+    if (!updated) return res.status(404).json({ message: '해당 예약을 찾을 수 없습니다.' });
+    res.json(updated);
   } catch (err) {
     next(err);
   }
