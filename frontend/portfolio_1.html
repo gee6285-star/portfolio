@@ -366,6 +366,7 @@
       <a href="#certs">06 자격증</a>
       <a href="#plans">07 계획</a>
       <a href="#attachments">08 자료</a>
+      <a href="./visit.html">찾아오는 길 ↗</a>
     </nav>
     <span class="plan-tag">PLAN No. 202421389</span>
   </div>
@@ -691,7 +692,7 @@
   loadProjects();
 
   (function(){
-    var links = Array.prototype.slice.call(document.querySelectorAll('.zonenav a'));
+    var links = Array.prototype.slice.call(document.querySelectorAll('.zonenav a[href^="#"]'));
     var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
     if(!('IntersectionObserver' in window) || sections.length === 0) return;
     var io = new IntersectionObserver(function(entries){
