@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>찾아오는 길 · 임성아 포트폴리오</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@300;400;500;700;800&display=swap');
+
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f7f3; --surface:#ffffff; --ink:#16211c; --ink-soft:#45524a; --ink-faint:#6b776e;
+    --accent:#1f6e4a; --accent-ink:#ffffff; --accent-soft:rgba(31,110,74,0.09);
+    --line:#d7ddd0; --shadow:0 18px 40px -22px rgba(22,33,28,0.35);
+    --font-display:'Gowun Batang','Nanum Myeongjo',serif;
+    --font-body:'Gothic A1','Apple SD Gothic Neo',sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1512; --surface:#141d19; --ink:#e9ede6; --ink-soft:#aab5a7; --ink-faint:#8a968c;
+      --accent:#59c48a; --accent-ink:#0e1512; --accent-soft:rgba(89,196,138,0.12);
+      --line:#263029; --shadow:0 18px 44px -22px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1512; --surface:#141d19; --ink:#e9ede6; --ink-soft:#aab5a7; --ink-faint:#8a968c;
+    --accent:#59c48a; --accent-ink:#0e1512; --accent-soft:rgba(89,196,138,0.12);
+    --line:#263029; --shadow:0 18px 44px -22px rgba(0,0,0,0.6);
+  }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.7; -webkit-font-smoothing:antialiased; }
+  h1,h2{ font-family:var(--font-display); margin:0; }
+  .wrap{ max-width:880px; margin:0 auto; padding:0 20px; }
+
+  /* 상단 바 */
+  .topbar{ border-bottom:1px solid var(--line); background:var(--surface); }
+  .topbar-inner{ max-width:880px; margin:0 auto; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .topbar a{ color:var(--ink-soft); text-decoration:none; font-size:14px; }
+  .topbar a:hover{ color:var(--accent); }
+  .brand{ font-weight:800; letter-spacing:.08em; font-size:13px; color:var(--ink); }
+
+  /* 제목 */
+  .page-head{ padding:44px 0 24px; }
+  .page-head .eyebrow{ color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.14em; }
+  .page-head h1{ font-size:clamp(28px,5vw,38px); margin-top:6px; }
+
+  /* 주소 */
+  .address-card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; box-shadow:var(--shadow); }
+  .address-label{ font-size:12px; font-weight:700; color:var(--accent); letter-spacing:.1em; }
+  .address-text{ font-size:18px; font-weight:700; margin:2px 0 0; }
+  .address-sub{ font-size:14px; color:var(--ink-soft); margin:2px 0 0; }
+
+  /* 지도 */
+  .map-frame{ margin-top:16px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface); }
+  .map-frame iframe{ display:block; width:100%; height:380px; border:0; }
+
+  /* 날씨 */
+  .weather-card{ margin-top:16px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .weather-title{ font-family:var(--font-body); font-size:14px; font-weight:700; color:var(--ink-soft); margin:0 0 10px; }
+  .weather-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .weather-item{ background:var(--accent-soft); border-radius:10px; padding:12px 14px; }
+  .weather-item .label{ font-size:13px; color:var(--ink-soft); }
+  .weather-item .value{ font-size:30px; font-weight:800; line-height:1.2; }
+  .weather-note{ font-size:12px; color:var(--ink-faint); margin:10px 0 0; }
+
+  /* 출처 (작게) */
+  .sources{ margin:14px 0 0; font-size:11.5px; color:var(--ink-faint); line-height:1.6; }
+  .sources a{ color:inherit; }
+
+  /* 예약 버튼 */
+  .reserve-area{ margin:32px 0 64px; text-align:center; }
+  .reserve-button{
+    display:inline-block; background:var(--accent); color:var(--accent-ink); text-decoration:none;
+    font-size:17px; font-weight:800; padding:14px 40px; border-radius:999px;
+    box-shadow:var(--shadow); transition:transform .15s;
+  }
+  .reserve-button:hover{ transform:translateY(-2px); }
+  .reserve-button:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; }
+
+  @media (max-width:520px){
+    .map-frame iframe{ height:300px; }
+    .weather-item .value{ font-size:26px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand">LIM SEONG-A</span>
+    <a href="./portfolio_1.html">← 포트폴리오로 돌아가기</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <div class="eyebrow">LOCATION</div>
+    <h1>찾아오는 길</h1>
+  </div>
+
+  <!-- 1. 주소 + 지도 -->
+  <section id="location-section" aria-label="찾아오는 길">
+    <div class="address-card">
+      <div class="address-label">주소</div>
+      <p class="address-text" id="address-text"></p>
+      <p class="address-sub" id="address-sub"></p>
+    </div>
+    <div class="map-frame">
+      <iframe id="map-embed" title="상명대학교 천안캠퍼스 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </section>
+
+  <!-- 2. 날씨 -->
+  <section class="weather-card" id="weather-section" aria-label="현재 날씨">
+    <h2 class="weather-title">이 주소의 현재 날씨</h2>
+    <div class="weather-grid">
+      <div class="weather-item"><div class="label">온도</div><div class="value" id="weather-temperature">–</div></div>
+      <div class="weather-item"><div class="label">습도</div><div class="value" id="weather-humidity">–</div></div>
+    </div>
+    <p class="weather-note" id="weather-note">날씨 정보를 불러오는 중입니다…</p>
+  </section>
+
+  <!-- 출처 -->
+  <p class="sources" id="sources"></p>
+
+  <!-- 3. 방문 예약 -->
+  <div class="reserve-area">
+    <a class="reserve-button" id="reserve-button" href="./reservation.html">방문 예약하기</a>
+  </div>
+</main>
+
+<script>
+  // ============================================================
+  // 설정값 (장소/출처를 바꾸려면 여기만 수정하세요)
+  // 좌표는 OpenStreetMap(Nominatim) 검색 결과(상명대학교 천안캠퍼스, 상명대길 31)를 사용했습니다.
+  // ============================================================
+  var VISIT_CONFIG = {
+    addressMain: '상명대학교 천안 (상명대길 31) 상록관 306',
+    addressSub: '충남 천안시 동남구 상명대길 31',
+    latitude: 36.8330,
+    longitude: 127.1790,
+    mapZoomSpan: 0.004, // 지도 범위(도). 작을수록 확대됨
+    reservationPage: './reservation.html',
+    sources: [
+      { label: '지도: © OpenStreetMap contributors', url: 'https://www.openstreetmap.org/copyright' },
+      { label: '날씨: Open-Meteo.com', url: 'https://open-meteo.com/' }
+    ]
+  };
+
+  // ---------- 주소 / 지도 / 출처 / 버튼 ----------
+  function renderLocation(cfg) {
+    document.getElementById('address-text').textContent = cfg.addressMain;
+    document.getElementById('address-sub').textContent = cfg.addressSub;
+
+    var d = cfg.mapZoomSpan;
+    var bbox = [cfg.longitude - d, cfg.latitude - d / 2, cfg.longitude + d, cfg.latitude + d / 2].join(',');
+    document.getElementById('map-embed').src =
+      'https://www.openstreetmap.org/export/embed.html?bbox=' + encodeURIComponent(bbox) +
+      '&layer=mapnik&marker=' + cfg.latitude + ',' + cfg.longitude;
+
+    document.getElementById('reserve-button').href = cfg.reservationPage;
+
+    var sourcesEl = document.getElementById('sources');
+    sourcesEl.textContent = '출처 — ';
+    cfg.sources.forEach(function (s, i) {
+      if (i > 0) sourcesEl.appendChild(document.createTextNode(' · '));
+      var a = document.createElement('a');
+      a.href = s.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = s.label;
+      sourcesEl.appendChild(a);
+    });
+  }
+
+  // ---------- 날씨 (Open-Meteo, API 키 불필요) ----------
+  function loadWeather(cfg) {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + cfg.latitude +
+      '&longitude=' + cfg.longitude +
+      '&current=temperature_2m,relative_humidity_2m&timezone=Asia%2FSeoul';
+    fetch(url)
+      .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
+      .then(function (data) {
+        var c = data.current;
+        document.getElementById('weather-temperature').textContent = Math.round(c.temperature_2m) + '°C';
+        document.getElementById('weather-humidity').textContent = Math.round(c.relative_humidity_2m) + '%';
+        document.getElementById('weather-note').textContent =
+          '측정 시각: ' + c.time.replace('T', ' ') + ' (한국 시간 기준)';
+      })
+      .catch(function () {
+        document.getElementById('weather-note').textContent = '날씨 정보를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.';
+      });
+  }
+
+  renderLocation(VISIT_CONFIG);
+  loadWeather(VISIT_CONFIG);
+</script>
+</body>
+</html>

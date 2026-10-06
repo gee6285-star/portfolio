@@ -5,6 +5,10 @@
     { "source": "/admin", "destination": "/frontend/admin.html" },
     { "source": "/admin.html", "destination": "/frontend/admin.html" },
     { "source": "/index.html", "destination": "/frontend/index.html" },
+    { "source": "/visit", "destination": "/frontend/visit.html" },
+    { "source": "/visit.html", "destination": "/frontend/visit.html" },
+    { "source": "/reservation", "destination": "/frontend/reservation.html" },
+    { "source": "/reservation.html", "destination": "/frontend/reservation.html" },
     { "source": "/config.js", "destination": "/frontend/config.js" }
   ]
 }
